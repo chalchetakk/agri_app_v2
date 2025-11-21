@@ -4,37 +4,38 @@ namespace agriApp.Entities.Auth
 {
     public class LoginActivity
     {
-        public Guid ActivityId { get; private set; }
+        public Guid ActivityId { get; set; }
 
         // FK to UserProfile
-        public Guid UserId { get; private set; }
-        public UserProfile? User { get; private set; }  // optional navigation property
+        public Guid UserId { get; set; }
+        public UserProfile? User { get; set; }
 
         // Timestamp of login attempt
-        public DateTime LoginTime { get; private set; }
+        public DateTime LoginTime { get; set; }
 
         // Success or failure
-        public bool IsSuccessful { get; private set; }
+        public bool IsSuccessful { get; set; }
 
-        // Null when successful; contains reason when failed
-        public string? FailureReason { get; private set; }
+        // Reason (null if successful)
+        public string? FailureReason { get; set; }
 
         // Optional metadata
-        public string? IpAddress { get; private set; }
-        public string? DeviceInfo { get; private set; }
+        public string? IpAddress { get; set; }
+        public string? DeviceInfo { get; set; }
 
 
-        // ---------------------------------------
-        // Constructor – Create a login activity
-        // ---------------------------------------
+        // EF Core requires public parameterless constructor
+        public LoginActivity() { }
 
+
+        // Constructor used by services
         public LoginActivity(
             Guid userId,
             bool isSuccessful,
             DateTime loginTime,
-            string failureReason = null,
-            string ipAddress = null,
-            string deviceInfo = null)
+            string? failureReason = null,
+            string? ipAddress = null,
+            string? deviceInfo = null)
         {
             if (userId == Guid.Empty)
                 throw new ArgumentException("UserId cannot be empty.");
@@ -46,8 +47,8 @@ namespace agriApp.Entities.Auth
                 throw new ArgumentException("FailureReason is required for failed login attempts.");
 
             ActivityId = Guid.NewGuid();
-
             UserId = userId;
+
             IsSuccessful = isSuccessful;
             LoginTime = loginTime;
 
@@ -55,9 +56,5 @@ namespace agriApp.Entities.Auth
             IpAddress = ipAddress;
             DeviceInfo = deviceInfo;
         }
-
-
-        // Required for EF Core
-        private LoginActivity() { }
     }
 }

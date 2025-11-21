@@ -4,29 +4,31 @@ namespace agriApp.Entities.Auth
 {
     public class Otp
     {
-        public Guid OtpId { get; private set; }
+        public Guid OtpId { get; set; }
 
         // FK to UserProfile
-        public Guid UserId { get; private set; }
-        public UserProfile User { get; private set; }   // optional, but helpful for EF Core
+        public Guid UserId { get; set; }
+        public UserProfile? User { get; set; }   // nullable navigation property
 
         // Hashed OTP value
-        public string OtpHash { get; private set; } = default!;
+        public string OtpHash { get; set; } = default!;
 
         // Expiration timestamp
-        public DateTime ExpireAt { get; private set; }
+        public DateTime ExpireAt { get; set; }
 
         // Usage tracking
-        public bool IsUsed { get; private set; }
-        public DateTime? UsedAt { get; private set; }
+        public bool IsUsed { get; set; }
+        public DateTime? UsedAt { get; set; }
 
-        // Manual timestamp (no ABP auditing)
-        public DateTime CreatedAt { get; private set; }
+        // Manual timestamp
+        public DateTime CreatedAt { get; set; }
 
 
-        // ------------------------------
-        // Constructor – OTP creation
-        // ------------------------------
+        // EF Core needs public parameterless constructor
+        public Otp() { }
+
+
+        // Custom constructor used by OtpService
         public Otp(Guid userId, string otpHash, DateTime expireAt)
         {
             if (userId == Guid.Empty)
@@ -39,7 +41,6 @@ namespace agriApp.Entities.Auth
                 throw new ArgumentException("ExpireAt must be in the future.");
 
             OtpId = Guid.NewGuid();
-
             UserId = userId;
             OtpHash = otpHash;
             ExpireAt = expireAt;
@@ -49,15 +50,10 @@ namespace agriApp.Entities.Auth
         }
 
 
-        // Required by EF Core
-        private Otp() { }
-
-
         // ------------------------------
         // Domain Methods
         // ------------------------------
 
-        // Mark OTP as used
         public void MarkAsUsed()
         {
             if (IsUsed)
@@ -70,7 +66,6 @@ namespace agriApp.Entities.Auth
             UsedAt = DateTime.UtcNow;
         }
 
-        // Check if OTP is expired
         public bool IsExpired()
         {
             return DateTime.UtcNow > ExpireAt;

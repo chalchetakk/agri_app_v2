@@ -4,37 +4,39 @@ namespace agriApp.Entities.Auth
 {
     public class JwtToken
     {
-        public Guid JwtTokenId { get; private set; }
+        public Guid JwtTokenId { get; set; }
 
         // FK → UserProfile
-        public Guid UserId { get; private set; }
-        public UserProfile User { get; private set; }
+        public Guid UserId { get; set; }
+        public UserProfile? User { get; set; }   // nullable navigation property
 
         // Access Token (short-lived)
-        public string AccessTokenJti { get; private set; } = default!;
-        public DateTime AccessTokenIssuedAt { get; private set; }
-        public DateTime AccessTokenExpiresAt { get; private set; }
+        public string AccessTokenJti { get; set; } = default!;
+        public DateTime AccessTokenIssuedAt { get; set; }
+        public DateTime AccessTokenExpiresAt { get; set; }
 
         // Refresh Token (long-lived)
-        public string RefreshTokenHash { get; private set; } = default!;
-        public DateTime RefreshTokenIssuedAt { get; private set; } = default!;
-        public DateTime RefreshTokenExpiresAt { get; private set; }
+        public string RefreshTokenHash { get; set; } = default!;
+        public DateTime RefreshTokenIssuedAt { get; set; }
+        public DateTime RefreshTokenExpiresAt { get; set; }
 
         // Token revocation
-        public bool IsRevoked { get; private set; }
-        public DateTime? RevokedAt { get; private set; }
+        public bool IsRevoked { get; set; }
+        public DateTime? RevokedAt { get; set; }
 
         // Token rotation — link to next token in chain
-        public Guid? ReplacedByTokenId { get; private set; }
+        public Guid? ReplacedByTokenId { get; set; }
 
         // Metadata
-        public string DeviceInfo { get; private set; }
-        public string IpAddress { get; private set; }
+        public string DeviceInfo { get; set; } = default!;
+        public string IpAddress { get; set; } = default!;
 
 
-        // -------------------------------------------------
-        // Constructor — Create new token pair (Access+Refresh)
-        // -------------------------------------------------
+        // EF Core requires public parameterless constructor
+        public JwtToken() { }
+
+
+        // Custom constructor used by TokenService
         public JwtToken(
             Guid userId,
             string accessTokenJti,
@@ -64,7 +66,6 @@ namespace agriApp.Entities.Auth
             JwtTokenId = Guid.NewGuid();
 
             UserId = userId;
-
             AccessTokenJti = accessTokenJti;
             AccessTokenIssuedAt = accessTokenIssuedAt;
             AccessTokenExpiresAt = accessTokenExpiresAt;
@@ -80,16 +81,10 @@ namespace agriApp.Entities.Auth
         }
 
 
-        // Required by EF Core
-        private JwtToken() { }
-
-
-        // -------------------------------------------------
+        // -----------------------------
         // Domain Methods
-        // -------------------------------------------------
-
-        // Revoke this refresh token
-        public void Revoke(string reason = null)
+        // -----------------------------
+        public void Revoke(string? reason = null)
         {
             if (IsRevoked)
                 return;
@@ -98,7 +93,6 @@ namespace agriApp.Entities.Auth
             RevokedAt = DateTime.UtcNow;
         }
 
-        // Link to the new token issued during rotation
         public void SetReplacedBy(Guid newTokenId)
         {
             if (newTokenId == Guid.Empty)
@@ -107,13 +101,11 @@ namespace agriApp.Entities.Auth
             ReplacedByTokenId = newTokenId;
         }
 
-        // Refresh token lifetime check
         public bool IsRefreshExpired()
         {
             return DateTime.UtcNow > RefreshTokenExpiresAt;
         }
 
-        // Access token lifetime check
         public bool IsAccessExpired()
         {
             return DateTime.UtcNow > AccessTokenExpiresAt;

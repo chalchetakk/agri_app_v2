@@ -4,23 +4,25 @@ namespace agriApp.Entities.Auth
 {
     public class UserProfile
     {
-        public Guid UserProfileId { get; private set; }
+        public Guid UserProfileId { get; set; }
 
-        public string MobileNumber { get; private set; } = default!;
+        public string MobileNumber { get; set; } = default!;
 
-        public string PreferredLanguage { get; private set; } = default!;
+        public string PreferredLanguage { get; set; } = "en";
 
-        public bool IsVerified { get; private set; }
+        public bool IsVerified { get; set; }
 
-        public DateTime? LastLoginAt { get; private set; }
+        public DateTime? LastLoginAt { get; set; }
 
-        public DateTime CreationTime { get; private set; }
-        public DateTime? LastModificationTime { get; private set; }
+        public DateTime CreationTime { get; set; }
+        public DateTime? LastModificationTime { get; set; }
 
 
-        // ----------------------------
-        // Constructor (User creation)
-        // ----------------------------
+        // EF Core requires public parameterless constructor
+        public UserProfile() { }
+
+
+        // Constructor for creating user manually
         public UserProfile(string mobileNumber, string preferredLanguage = "en")
         {
             UserProfileId = Guid.NewGuid();
@@ -35,13 +37,9 @@ namespace agriApp.Entities.Auth
         }
 
 
-        // Required by EF Core
-        private UserProfile() { }
-
-
-        // ----------------------------
-        // PRIVATE helpers
-        // ----------------------------
+        // --------------------------
+        // Helpers
+        // --------------------------
         private void ValidateMobileNumber(string number)
         {
             if (string.IsNullOrWhiteSpace(number))
@@ -57,29 +55,26 @@ namespace agriApp.Entities.Auth
         }
 
 
-        // ----------------------------
-        // PUBLIC domain methods
-        // ----------------------------
+        // --------------------------
+        // Domain Methods
+        // --------------------------
 
-        // Step 4 of verification flow — OTP already verified
+        // Rename to match AuthService usage
+        public void Verify()
+        {
+            IsVerified = true;
+            TouchModified();
+        }
+
         public void UpdateMobileNumber(string newNumber)
         {
             ValidateMobileNumber(newNumber);
 
             if (newNumber == MobileNumber)
-                throw new ArgumentException("New mobile number cannot be the same as the current one.");
+                throw new ArgumentException("New mobile number cannot match the old number.");
 
             MobileNumber = newNumber;
-
-            // After new number verification is complete
             IsVerified = false;
-
-            TouchModified();
-        }
-
-        public void MarkVerified()
-        {
-            IsVerified = true;
             TouchModified();
         }
 
