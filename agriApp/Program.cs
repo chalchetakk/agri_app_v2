@@ -1,6 +1,14 @@
 using agriApp.Data;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Services.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+// using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;  // ⭐ Add this
+using System.Security.Claims; // ⭐ Add this namespace
+
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,26 +23,98 @@ builder.Services.AddDbContext<AgriDbContext>(options =>
 });
 
 // ----------------------------------------
-// 2️⃣ Add services (controllers, etc.)
+// 2️⃣ JWT AUTHENTICATION
+// ----------------------------------------
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+
+var secretKey = jwtSettings["SecretKey"];
+var issuer = jwtSettings["Issuer"];
+var audience = jwtSettings["Audience"];
+
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false; // you can set true in production
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,   // no delay for token expiration
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        // NameClaimType = JwtRegisteredClaimNames.Sub,   // ⭐ map "sub"
+    // RoleClaimType = "role"
+    
+    // NameClaimType = ClaimTypes.NameIdentifier,   // ⭐ map Name
+//  NameClaimType = ClaimTypes.NameIdentifier // ⭐ Map JWT "sub" to User.Identity.Name
+// NameClaimType = JwtRegisteredClaimNames.Sub   // map "sub" to User.Identity.Name
+NameClaimType = JwtRegisteredClaimNames.Sub // ⭐ ensures Name = "sub"
+        
+    };
+});
+
+// ----------------------------------------
+// 3️⃣ Add Controllers + Swagger
 // ----------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "agriApp API", Version = "v1" });
+
+    // JWT Authorization in Swagger UI
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header. Example: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // ----------------------------------------
-// 3️⃣ Dependency Injection (ADD HERE ❗)
+// 4️⃣ Dependency Injection
 // ----------------------------------------
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // ----------------------------------------
-// 4️⃣ Build app
+// 5️⃣ Build app
 // ----------------------------------------
 var app = builder.Build();
 
 // ----------------------------------------
-// 5️⃣ Swagger
+// 6️⃣ Swagger
 // ----------------------------------------
 if (app.Environment.IsDevelopment())
 {
@@ -43,10 +123,13 @@ if (app.Environment.IsDevelopment())
 }
 
 // ----------------------------------------
-// 6️⃣ Middleware
+// 7️⃣ Middleware pipeline
 // ----------------------------------------
 app.UseHttpsRedirection();
+
+app.UseAuthentication();  // ⭐ REQUIRED BEFORE UseAuthorization()
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
