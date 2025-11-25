@@ -1,6 +1,7 @@
 using agriApp.Data;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Services.Auth;
+using agriApp.Services.Roles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 // using Microsoft.OpenApi.Models;
@@ -107,6 +108,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

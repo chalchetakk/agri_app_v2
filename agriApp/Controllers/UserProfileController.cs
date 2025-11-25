@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Services.Auth;
+using agriApp.Services.Roles;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -16,6 +17,7 @@ namespace agriApp.Controllers
     {
         private readonly AgriDbContext _db;
         private readonly IOtpService _otpService;
+        private readonly IRoleService _roleService;
 
         public UserProfileController(AgriDbContext db, IOtpService otpService)
         {
@@ -98,6 +100,17 @@ foreach (var c in User.Claims)
             if (string.IsNullOrWhiteSpace(request.NewMobile))
                 return BadRequest(new { message = "New mobile number is required." });
 
+// 1. Get UserId from the JWT claim (this is required since this is an authorized endpoint)
+    var userIdClaim = User.FindFirst("sub")?.Value;
+    if (userIdClaim == null)
+        return Unauthorized(); // Should not happen if [Authorize] is used
+
+    var userId = Guid.Parse(userIdClaim);
+    // 2. Load the current UserProfile
+    var user = await _db.UserProfiles.FirstOrDefaultAsync(u => u.UserProfileId == userId);
+    if (user == null)
+        return NotFound(new { message = "Logged-in user not found." });
+
 // Check if new number already exists
 var exists = await _db.UserProfiles.AnyAsync(u => u.MobileNumber == request.NewMobile);
 if (exists)
@@ -105,7 +118,7 @@ if (exists)
 
 
             // Send OTP for verification
-            await _otpService.SendOtpAsync(request.NewMobile);
+            await _otpService.SendOtpAsync(request.NewMobile,userId.ToString(),allowCreateUser:false);
 
             return Ok(new { message = "OTP sent to new mobile number." });
         }
@@ -131,16 +144,17 @@ if (exists)
             var user = await _db.UserProfiles.FirstOrDefaultAsync(u => u.UserProfileId == userId);
             if (user == null)
                 return NotFound(new { message = "User not found." });
+// Check if new number already exists
+var exists = await _db.UserProfiles.AnyAsync(u => u.MobileNumber == request.NewMobile);
+if (exists)
+    return BadRequest(new { message = "Mobile number already in use." });
 
             // Verify OTP for new number
             var otpOk = await _otpService.VerifyOtpAsync(request.NewMobile, request.Otp);
             if (!otpOk)
                 return BadRequest(new { message = "Invalid or expired OTP." });
 
-// Check if new number already exists
-var exists = await _db.UserProfiles.AnyAsync(u => u.MobileNumber == request.NewMobile);
-if (exists)
-    return BadRequest(new { message = "Mobile number already in use." });
+
 
 
             // Actually update mobile
@@ -151,7 +165,36 @@ if (exists)
 
             return Ok(new { message = "Mobile number updated successfully." });
         }
+
+        // ----------------------------------------------------------
+// GET /roles/status
+// ----------------------------------------------------------
+[HttpGet("/roles/status")]
+[Authorize]
+public async Task<IActionResult> GetRoleStatus()
+{
+    var userIdClaim = User.FindFirst("sub")?.Value;
+    if (userIdClaim == null)
+        return Unauthorized(new { message = "Invalid user." });
+
+    var userId = Guid.Parse(userIdClaim);
+
+    var status = await _roleService.GetRoleStatusAsync(userId);
+
+    return Ok(new
+    {
+        isFarmer = status.IsFarmer,
+        isBuyer = status.IsBuyer,
+        isSeller = status.IsSeller,
+        isMandiOfficial = status.IsMandiOfficial
+    });
+}
+
     }
+
+
+
+
 
     // ----------------------------------------------------------
     // DTOs
@@ -171,5 +214,13 @@ if (exists)
     {
         public string? NewMobile { get; set; }
         public string? Otp { get; set; }
+    }
+
+    public class RoleStatusDto
+    {
+        public bool IsFarmer { get; set; }
+        public bool IsBuyer { get; set; }
+        public bool IsSeller { get; set; }
+        public bool IsMandiOfficial { get; set; }
     }
 }

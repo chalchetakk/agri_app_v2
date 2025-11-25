@@ -20,43 +20,73 @@ namespace agriApp.Services.Auth
         // -------------------------------------------------------
         // SEND OTP
         // -------------------------------------------------------
-        public async Task SendOtpAsync(string mobileNumber)
+      
+// Assuming necessary using statements for Otp, UserProfile, and DbContext are here
+
+public async Task SendOtpAsync(string mobileNumber, string userPreviousId = null, bool allowCreateUser = true)
+{
+    if (string.IsNullOrWhiteSpace(mobileNumber) || mobileNumber.Length != 10)
+        throw new Exception("Invalid mobile number.");
+
+    // Step 1 — Check if user exists for the given mobile number
+    var user = await _dbContext.UserProfiles
+        .FirstOrDefaultAsync(x => x.MobileNumber == mobileNumber);
+
+    // Determine the GUID to link the OTP to.
+    Guid targetUserId;
+
+    // Step 2 — Handle User Existence and determine targetUserId
+    if (user == null)
+    {
+        if (allowCreateUser)
         {
-            if (string.IsNullOrWhiteSpace(mobileNumber) || mobileNumber.Length != 10)
-                throw new Exception("Invalid mobile number.");
-
-            // Step 1 — Check if user exists
-            var user = await _dbContext.UserProfiles
-                .FirstOrDefaultAsync(x => x.MobileNumber == mobileNumber);
-
-            // Step 2 — Create user if not exists
-            if (user == null)
-            {
-                user = new UserProfile(mobileNumber);
-                _dbContext.UserProfiles.Add(user);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            // Step 3 — Generate 4-digit OTP
-            var random = new Random();
-            var otp = random.Next(1000, 9999).ToString();
-
-            // Step 4 — Hash OTP
-            var otpHash = HashOtp(otp);
-
-            // Step 5 — Create OTP entry using domain constructor
-            var otpEntity = new Otp(
-                userId: user.UserProfileId,
-                otpHash: otpHash,
-                expireAt: DateTime.UtcNow.AddMinutes(5)
-            );
-
-            _dbContext.Otps.Add(otpEntity);
+            // Case 1: User not found, creation allowed (Registration/Login)
+            var newUser = new UserProfile(mobileNumber);
+            _dbContext.UserProfiles.Add(newUser);
             await _dbContext.SaveChangesAsync();
-
-            // Step 6 — Send SMS (mock here)
-            Console.WriteLine($"[DEV] OTP for {mobileNumber}: {otp}");
+            targetUserId = newUser.UserProfileId;
+            // IMPORTANT: If we are here, 'user' is still null, but 'newUser' exists. 
+            // We set the targetUserId and proceed.
         }
+        else
+        {
+            // Case 2: User not found, creation disallowed (Change Mobile - new number)
+            // We must rely on the logged-in user's ID passed via userPreviousId.
+            if (string.IsNullOrWhiteSpace(userPreviousId) || !Guid.TryParse(userPreviousId, out targetUserId))
+            {
+                // If no valid ID is provided, we can't link the OTP.
+                throw new Exception("Operation requires an existing User ID for verification.");
+            }
+            // If parsing succeeds, targetUserId is set.
+        }
+    }
+    else
+    {
+        // Case 3: User found (Login or existing number validation)
+        targetUserId = user.UserProfileId;
+    }
+
+    // Step 3 — Generate 4-digit OTP
+    var random = new Random();
+    var otp = random.Next(1000, 9999).ToString();
+
+    // Step 4 — Hash OTP
+    var otpHash = HashOtp(otp); // Assuming HashOtp is defined in the service
+
+    // Step 5 — Create OTP entry using domain constructor
+    // Note: otpEntity is declared once here and is accessible for saving. (Fixes CS0103)
+    var otpEntity = new Otp(
+        userId: targetUserId, // Now uses the determined GUID, safely (Fixes CS1061)
+        otpHash: otpHash,
+        expireAt: DateTime.UtcNow.AddMinutes(5)
+    );
+
+    _dbContext.Otps.Add(otpEntity);
+    await _dbContext.SaveChangesAsync();
+
+    // Step 6 — Send SMS (mock here)
+    Console.WriteLine($"[DEV] OTP for {mobileNumber}: {otp}");
+}
 
         // -------------------------------------------------------
         // VERIFY OTP
