@@ -26,6 +26,8 @@ public DbSet<FarmDetails> FarmDetails { get; set; }
 public DbSet<Buyer> Buyers { get; set; }
 public DbSet<BuyerInterestedCrop> BuyerInterestedCrops { get; set; }
 public DbSet<Crop> Crops { get; set; }
+public DbSet<Seller> Sellers { get; set; }
+public DbSet<SellerInterestedCrop> SellerInterestedCrops { get; set; }
 
 
 
