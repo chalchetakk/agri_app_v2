@@ -19,10 +19,11 @@ namespace agriApp.Controllers
         private readonly IOtpService _otpService;
         private readonly IRoleService _roleService;
 
-        public UserProfileController(AgriDbContext db, IOtpService otpService)
+        public UserProfileController(AgriDbContext db, IOtpService otpService,  IRoleService roleService)
         {
             _db = db;
             _otpService = otpService;
+            _roleService = roleService;
         }
 
         // ----------------------------------------------------------
