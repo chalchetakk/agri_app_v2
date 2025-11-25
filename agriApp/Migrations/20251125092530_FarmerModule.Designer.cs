@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agriApp.Data;
@@ -11,9 +12,11 @@ using agriApp.Data;
 namespace agriApp.Migrations
 {
     [DbContext(typeof(AgriDbContext))]
-    partial class AgriDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125092530_FarmerModule")]
+    partial class FarmerModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,37 +186,6 @@ namespace agriApp.Migrations
                         .IsUnique();
 
                     b.ToTable("UserProfiles", (string)null);
-                });
-
-            modelBuilder.Entity("agriApp.Entities.Market.Crop", b =>
-                {
-                    b.Property<int>("CropId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CropId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CropName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Grade")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("CropId");
-
-                    b.HasIndex("CropName")
-                        .IsUnique();
-
-                    b.ToTable("Crops", (string)null);
                 });
 
             modelBuilder.Entity("agriApp.Entities.Stakeholders.FarmDetails", b =>

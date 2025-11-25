@@ -2,6 +2,8 @@ using agriApp.Data;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Services.Auth;
 using agriApp.Services.Roles;
+using agriApp.Services.Farmers;
+using agriApp.Services.Crops;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 // using Microsoft.OpenApi.Models;
@@ -109,6 +111,8 @@ builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IFarmerService, FarmerService>();
+builder.Services.AddScoped<ICropService, CropService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

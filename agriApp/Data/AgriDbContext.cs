@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using agriApp.Entities.Auth;
+using agriApp.Entities.Stakeholders;
+using agriApp.Entities.Market;
 
 namespace agriApp.Data
 {
@@ -18,7 +20,11 @@ namespace agriApp.Data
         public DbSet<Otp> Otps { get; set; }
         public DbSet<LoginActivity> LoginActivities { get; set; }
         public DbSet<JwtToken> JwtTokens { get; set; }
+public DbSet<Farmer> Farmers { get; set; }
+public DbSet<FarmerInterestedCrop> FarmerInterestedCrops { get; set; }
+public DbSet<FarmDetails> FarmDetails { get; set; }
 
+public DbSet<Crop> Crops { get; set; }
 
         // ---------------------------
         // Model configuration loader
