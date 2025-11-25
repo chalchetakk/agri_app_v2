@@ -23,8 +23,11 @@ namespace agriApp.Data
 public DbSet<Farmer> Farmers { get; set; }
 public DbSet<FarmerInterestedCrop> FarmerInterestedCrops { get; set; }
 public DbSet<FarmDetails> FarmDetails { get; set; }
-
+public DbSet<Buyer> Buyers { get; set; }
+public DbSet<BuyerInterestedCrop> BuyerInterestedCrops { get; set; }
 public DbSet<Crop> Crops { get; set; }
+
+
 
         // ---------------------------
         // Model configuration loader
