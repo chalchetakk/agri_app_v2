@@ -17,9 +17,10 @@ namespace agriApp.Controllers
         private readonly IFarmerService _farmerService;
         private readonly AgriDbContext _db;     // 👈 add this
 
-        public FarmerController(IFarmerService farmerService)
+        public FarmerController(IFarmerService farmerService, AgriDbContext db)
         {
             _farmerService = farmerService;
+            _db = db;
         }
 
         [HttpPost("register")]
@@ -53,7 +54,7 @@ public async Task<IActionResult> FarmerStatus()
 
     var exists = await _db.Farmers.AnyAsync(f => f.UserId == userId);
 
-    return Ok(new { exists });
+    return Ok(new { isFarmer = exists });
 }
 [HttpGet("profile")]
 [Authorize]

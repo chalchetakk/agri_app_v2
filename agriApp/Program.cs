@@ -4,8 +4,10 @@ using agriApp.Services.Auth;
 using agriApp.Services.Roles;
 using agriApp.Services.Farmers;
 using agriApp.Services.Crops;
+using agriApp.Services.Buyers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+
 // using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;  // ⭐ Add this
@@ -113,6 +115,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IFarmerService, FarmerService>();
 builder.Services.AddScoped<ICropService, CropService>();
+builder.Services.AddScoped<IBuyerService, BuyerService>();
 
 // ----------------------------------------
 // 5️⃣ Build app
