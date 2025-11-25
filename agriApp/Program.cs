@@ -5,6 +5,7 @@ using agriApp.Services.Roles;
 using agriApp.Services.Farmers;
 using agriApp.Services.Crops;
 using agriApp.Services.Buyers;
+using agriApp.Services.Sellers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -116,6 +117,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IFarmerService, FarmerService>();
 builder.Services.AddScoped<ICropService, CropService>();
 builder.Services.AddScoped<IBuyerService, BuyerService>();
+builder.Services.AddScoped<ISellerService, SellerService>();
 
 // ----------------------------------------
 // 5️⃣ Build app
