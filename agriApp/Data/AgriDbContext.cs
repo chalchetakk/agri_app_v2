@@ -28,6 +28,9 @@ public DbSet<BuyerInterestedCrop> BuyerInterestedCrops { get; set; }
 public DbSet<Crop> Crops { get; set; }
 public DbSet<Seller> Sellers { get; set; }
 public DbSet<SellerInterestedCrop> SellerInterestedCrops { get; set; }
+public DbSet<Mandi> Mandis { get; set; }
+public DbSet<OfficialRole> OfficialRoles { get; set; }
+public DbSet<MandiOfficial> MandiOfficials { get; set; }
 
 
 
