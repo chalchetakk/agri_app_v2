@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using agriApp.Entities.Auth;
 using agriApp.Entities.Stakeholders;
 using agriApp.Entities.Market;
+using agriApp.Entities.Lots;
 
 namespace agriApp.Data
 {
@@ -32,6 +33,7 @@ public DbSet<Mandi> Mandis { get; set; }
 public DbSet<OfficialRole> OfficialRoles { get; set; }
 public DbSet<MandiOfficial> MandiOfficials { get; set; }
 
+public DbSet<PreRegisteredLot> PreRegisteredLots { get; set; }
 
 
         // ---------------------------

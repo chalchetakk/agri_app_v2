@@ -6,6 +6,9 @@ using agriApp.Services.Farmers;
 using agriApp.Services.Crops;
 using agriApp.Services.Buyers;
 using agriApp.Services.Sellers;
+using agriApp.Services.MandiOfficials;
+using agriApp.Services.Mandis;
+using agriApp.Services.Files;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -118,6 +121,10 @@ builder.Services.AddScoped<IFarmerService, FarmerService>();
 builder.Services.AddScoped<ICropService, CropService>();
 builder.Services.AddScoped<IBuyerService, BuyerService>();
 builder.Services.AddScoped<ISellerService, SellerService>();
+builder.Services.AddScoped<IMandiOfficialService, MandiOfficialService>();
+builder.Services.AddScoped<IMandiService, MandiService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

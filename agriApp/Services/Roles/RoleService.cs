@@ -25,10 +25,10 @@ namespace agriApp.Services.Roles
 
         // To be implemented later:
         // IsSeller = false,
-        IsMandiOfficial = false,
+        // IsMandiOfficial = false,
 
-        IsSeller = await _db.Sellers.AnyAsync(s => s.UserId == userId)
-// IsMandiOfficial = await _db.MandiOfficials.AnyAsync(m => m.UserId == userId)
+        IsSeller = await _db.Sellers.AnyAsync(s => s.UserId == userId),
+IsMandiOfficial = await _db.MandiOfficials.AnyAsync(m => m.UserId == userId)
 
             };
 

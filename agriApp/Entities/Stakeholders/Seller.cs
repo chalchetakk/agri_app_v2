@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using agriApp.Entities.Lots;
 
 namespace agriApp.Entities.Stakeholders
 {
@@ -17,6 +18,7 @@ namespace agriApp.Entities.Stakeholders
         public DateTime? UpdatedAt { get; set; }
 
         public List<SellerInterestedCrop> InterestedCrops { get; set; } = new();
+public List<PreRegisteredLot> Lots { get; set; } = new();
 
         public Seller() { }
 

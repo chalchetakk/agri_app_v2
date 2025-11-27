@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using agriApp.Entities.Auth;
 using agriApp.Entities.Stakeholders;
+using agriApp.Entities.Lots;
 
 namespace agriApp.Entities.Stakeholders
 {
@@ -22,6 +23,8 @@ namespace agriApp.Entities.Stakeholders
         // Navigation collections
         public List<FarmerInterestedCrop> InterestedCrops { get; set; } = new();
         public List<FarmDetails> FarmDetails { get; set; } = new();
+    public List<PreRegisteredLot> Lots { get; set; } = new();
+
 
         // EF needs empty constructor
         public Farmer() {}

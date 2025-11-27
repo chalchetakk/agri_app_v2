@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agriApp.Data;
@@ -11,9 +12,11 @@ using agriApp.Data;
 namespace agriApp.Migrations
 {
     [DbContext(typeof(AgriDbContext))]
-    partial class AgriDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251127092646_SeedMandisAndRoles")]
+    partial class SeedMandisAndRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,72 +186,6 @@ namespace agriApp.Migrations
                         .IsUnique();
 
                     b.ToTable("UserProfiles", (string)null);
-                });
-
-            modelBuilder.Entity("agriApp.Entities.Lots.PreRegisteredLot", b =>
-                {
-                    b.Property<string>("PreLotId")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CropId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("ExpectedArrivalDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("FarmerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Grade")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("LotImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("MandiId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("QrCodeUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<float>("Quantity")
-                        .HasColumnType("real");
-
-                    b.Property<Guid?>("SellerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<float?>("SellingAmount")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("PreLotId");
-
-                    b.HasIndex("CropId");
-
-                    b.HasIndex("FarmerId");
-
-                    b.HasIndex("MandiId");
-
-                    b.HasIndex("SellerId");
-
-                    b.ToTable("PreRegisteredLots", (string)null);
                 });
 
             modelBuilder.Entity("agriApp.Entities.Market.Crop", b =>
@@ -667,39 +604,6 @@ namespace agriApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("agriApp.Entities.Lots.PreRegisteredLot", b =>
-                {
-                    b.HasOne("agriApp.Entities.Market.Crop", "Crop")
-                        .WithMany("Lots")
-                        .HasForeignKey("CropId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("agriApp.Entities.Stakeholders.Farmer", "Farmer")
-                        .WithMany("Lots")
-                        .HasForeignKey("FarmerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("agriApp.Entities.Market.Mandi", "Mandi")
-                        .WithMany("Lots")
-                        .HasForeignKey("MandiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("agriApp.Entities.Stakeholders.Seller", "Seller")
-                        .WithMany("Lots")
-                        .HasForeignKey("SellerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Crop");
-
-                    b.Navigation("Farmer");
-
-                    b.Navigation("Mandi");
-
-                    b.Navigation("Seller");
-                });
-
             modelBuilder.Entity("agriApp.Entities.Stakeholders.Buyer", b =>
                 {
                     b.HasOne("agriApp.Entities.Auth.UserProfile", "User")
@@ -801,15 +705,8 @@ namespace agriApp.Migrations
                     b.Navigation("Seller");
                 });
 
-            modelBuilder.Entity("agriApp.Entities.Market.Crop", b =>
-                {
-                    b.Navigation("Lots");
-                });
-
             modelBuilder.Entity("agriApp.Entities.Market.Mandi", b =>
                 {
-                    b.Navigation("Lots");
-
                     b.Navigation("Officials");
                 });
 
@@ -823,8 +720,6 @@ namespace agriApp.Migrations
                     b.Navigation("FarmDetails");
 
                     b.Navigation("InterestedCrops");
-
-                    b.Navigation("Lots");
                 });
 
             modelBuilder.Entity("agriApp.Entities.Stakeholders.OfficialRole", b =>
@@ -835,8 +730,6 @@ namespace agriApp.Migrations
             modelBuilder.Entity("agriApp.Entities.Stakeholders.Seller", b =>
                 {
                     b.Navigation("InterestedCrops");
-
-                    b.Navigation("Lots");
                 });
 #pragma warning restore 612, 618
         }

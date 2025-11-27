@@ -1,4 +1,5 @@
 using System;
+using agriApp.Entities.Lots;
 
 namespace agriApp.Entities.Market
 {
@@ -10,6 +11,7 @@ namespace agriApp.Entities.Market
         public string? Grade { get; set; }              // optional
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+public List<PreRegisteredLot> Lots { get; set; } = new();
 
         public Crop() { }
 
