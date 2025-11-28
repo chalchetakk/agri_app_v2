@@ -63,7 +63,8 @@ namespace agriApp.Data.Configurations
                    .HasMaxLength(500);
 
             builder.Property(l => l.QrCodeUrl)
-                   .HasMaxLength(500);
+                   .HasMaxLength(500)
+                   .IsRequired(false); 
 
             // 🔹 Timestamps
             builder.Property(l => l.CreatedAt)

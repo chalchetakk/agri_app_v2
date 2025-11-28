@@ -31,7 +31,7 @@ namespace agriApp.Entities.Lots
         public float? SellingAmount { get; set; }
 
         public string LotImageUrl { get; set; } = default!;
-        public string QrCodeUrl { get; set; } = default!;
+        public string? QrCodeUrl { get; set; }
 
         public DateTime ExpectedArrivalDate { get; set; }
 
