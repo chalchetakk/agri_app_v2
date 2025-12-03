@@ -34,6 +34,8 @@ public DbSet<OfficialRole> OfficialRoles { get; set; }
 public DbSet<MandiOfficial> MandiOfficials { get; set; }
 
 public DbSet<PreRegisteredLot> PreRegisteredLots { get; set; }
+public DbSet<ArrivedLot> ArrivedLots { get; set; }
+public DbSet<LiveAuctionLot> LiveAuctionLots { get; set; }
 
 
         // ---------------------------

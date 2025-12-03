@@ -21,72 +21,82 @@ namespace agriApp.Services.Auth
         }
 
         public async Task<LoginResult> LoginWithOtpAsync(
-            string mobileNumber,
-            string otp,
-            string deviceInfo,
-            string ipAddress)
-        {
-            // STEP 1 — Verify OTP
-            var isValidOtp = await _otpService.VerifyOtpAsync(mobileNumber, otp);
-            if (!isValidOtp)
-                throw new Exception("Invalid or expired OTP.");
+    string mobileNumber,
+    string otp,
+    string deviceInfo,
+    string ipAddress)
+{
+    // STEP 1 — Verify OTP
+    var isValidOtp = await _otpService.VerifyOtpAsync(mobileNumber, otp);
+    if (!isValidOtp)
+        throw new Exception("Invalid or expired OTP.");
 
-            // STEP 2 — Load User
-            var user = await _db.UserProfiles
-                .FirstOrDefaultAsync(u => u.MobileNumber == mobileNumber);
+    // STEP 2 — Load User
+    var user = await _db.UserProfiles
+        .FirstOrDefaultAsync(u => u.MobileNumber == mobileNumber);
 
-            if (user == null)
-                throw new Exception("User not found after OTP verification.");
+    if (user == null)
+        throw new Exception("User not found after OTP verification.");
 
-            // Mark verified
-            user.Verify();
-            _db.UserProfiles.Update(user);
+    // Mark verified
+    user.Verify();
+    _db.UserProfiles.Update(user);
 
-            // STEP 3 — Login Activity
-            var loginEntry = new LoginActivity(
-                userId: user.UserProfileId,
-                isSuccessful: true,
-                loginTime: DateTime.UtcNow,
-                failureReason: null,
-                ipAddress: ipAddress ?? "unknown-ip",
-                deviceInfo: deviceInfo ?? "unknown-device"
-            );
+    // ✅ STEP 3 — Fetch MandiOfficial Role (OFFICER / APPROVER / MANAGER)
+    var official = await _db.MandiOfficials
+        .Include(m => m.Role)
+        .FirstOrDefaultAsync(m => m.UserId == user.UserProfileId);
 
-            _db.LoginActivities.Add(loginEntry);
+    string? roleCode = official?.Role?.RoleCode; 
+    // Now roleCode could be: OFFICER, APPROVER, MANAGER, or null
 
-            // STEP 4 — Generate Access Token
-            var accessToken = _tokenService.GenerateAccessToken(
-                user,
-                deviceInfo ?? "unknown-device",
-                ipAddress ?? "unknown-ip"
-            );
+    // STEP 4 — Login Activity
+    var loginEntry = new LoginActivity(
+        userId: user.UserProfileId,
+        isSuccessful: true,
+        loginTime: DateTime.UtcNow,
+        failureReason: null,
+        ipAddress: ipAddress ?? "unknown-ip",
+        deviceInfo: deviceInfo ?? "unknown-device"
+    );
 
-            // Extract JTI
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(accessToken);
-            var jti = jwt.Id;
+    _db.LoginActivities.Add(loginEntry);
 
-            // STEP 5 — Refresh Token
-            var refreshToken = await _tokenService.GenerateAndStoreRefreshTokenAsync(
-                user.UserProfileId,
-                deviceInfo ?? "unknown-device",
-                ipAddress ?? "unknown-ip",
-                jti
-            );
+    // STEP 5 — Generate Access Token WITH role
+    var accessToken = _tokenService.GenerateAccessToken(
+        user,
+        deviceInfo ?? "unknown-device",
+        ipAddress ?? "unknown-ip",
+        roleCode     // <-- IMPORTANT
+    );
 
-            await _db.SaveChangesAsync();
+    // Extract JTI
+    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+    var jwt = handler.ReadJwtToken(accessToken);
+    var jti = jwt.Id;
 
-            // STEP 6 — Return response
-            return new LoginResult
-            {
-                UserId = user.UserProfileId,
-                MobileNumber = user.MobileNumber,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                ExpiresIn = jwt.ValidTo,
-                IsVerified = user.IsVerified
-            };
-        }
+    // STEP 6 — Refresh Token
+    var refreshToken = await _tokenService.GenerateAndStoreRefreshTokenAsync(
+        user.UserProfileId,
+        deviceInfo ?? "unknown-device",
+        ipAddress ?? "unknown-ip",
+        jti
+    );
+
+    await _db.SaveChangesAsync();
+
+    // STEP 7 — Return response
+    return new LoginResult
+    {
+        UserId = user.UserProfileId,
+        MobileNumber = user.MobileNumber,
+        AccessToken = accessToken,
+        RefreshToken = refreshToken,
+        ExpiresIn = jwt.ValidTo,
+        IsVerified = user.IsVerified
+    };
+}
+
     }
 
     public class LoginResult

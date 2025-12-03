@@ -6,7 +6,7 @@ namespace agriApp.Services.Auth
 {
     public interface ITokenService
     {
-        string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress);
+        string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress, string? roleCode);
 
         Task<string> GenerateAndStoreRefreshTokenAsync(
             Guid userId,

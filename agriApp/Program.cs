@@ -17,7 +17,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;  // ⭐ Add this
 using System.Security.Claims; // ⭐ Add this namespace
-
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,8 +69,8 @@ builder.Services.AddAuthentication(options =>
     // NameClaimType = ClaimTypes.NameIdentifier,   // ⭐ map Name
 //  NameClaimType = ClaimTypes.NameIdentifier // ⭐ Map JWT "sub" to User.Identity.Name
 // NameClaimType = JwtRegisteredClaimNames.Sub   // map "sub" to User.Identity.Name
-NameClaimType = JwtRegisteredClaimNames.Sub // ⭐ ensures Name = "sub"
-        
+NameClaimType = JwtRegisteredClaimNames.Sub, // ⭐ ensures Name = "sub"
+          RoleClaimType = ClaimTypes.Role // IMPORTANT
     };
 });
 
@@ -111,6 +110,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+
 // ----------------------------------------
 // 4️⃣ Dependency Injection
 // ----------------------------------------
@@ -127,6 +131,12 @@ builder.Services.AddScoped<IMandiService, MandiService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<ILotService, LotService>();
+// LOT SERVICES
+builder.Services.AddScoped<IArrivedLotService, ArrivedLotService>();
+builder.Services.AddScoped<ILiveAuctionLotService, LiveAuctionLotService>();
+
+builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+
 // ----------------------------------------
 // 5️⃣ Build app
 // ----------------------------------------
@@ -151,4 +161,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Later in the app setup
+app.UseCors("AllowAll");
 app.Run();

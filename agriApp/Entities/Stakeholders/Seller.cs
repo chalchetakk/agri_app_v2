@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using agriApp.Entities.Lots;
+using agriApp.Entities.Auth;
 
 namespace agriApp.Entities.Stakeholders
 {
@@ -9,6 +10,7 @@ namespace agriApp.Entities.Stakeholders
         public Guid SellerId { get; set; }   // GUID primary key
 
         public Guid UserId { get; set; }     // FK to UserProfile
+        public UserProfile? User { get; set; }   // <-- Add this
         public string SellerName { get; set; } = default!;
         public string? BusinessName { get; set; }
         public string Location { get; set; } = default!;

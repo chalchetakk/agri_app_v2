@@ -45,35 +45,42 @@ namespace agriApp.Services.Auth
         // ------------------------------------------------------------
         // Generate Access Token (HS256)
         // ------------------------------------------------------------
-        public string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress)
-        {
-            var jti = Guid.NewGuid().ToString();
+        public string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress, string? roleCode)
+{
+    var jti = Guid.NewGuid().ToString();
+    var now = DateTime.UtcNow;
+    var expires = now.AddMinutes(_accessTokenMinutes);
 
-            var now = DateTime.UtcNow;
-            var expires = now.AddMinutes(_accessTokenMinutes);
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.UserProfileId.ToString()),
+        new Claim(JwtRegisteredClaimNames.Jti, jti),
+        new Claim("mobile", user.MobileNumber),
+        new Claim("isVerified", user.IsVerified.ToString())
+    };
 
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserProfileId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, jti),
-                new Claim("mobile", user.MobileNumber),
-                new Claim("isVerified", user.IsVerified.ToString()),
-            };
+    if (!string.IsNullOrWhiteSpace(roleCode))
+    {
+        // THE MOST IMPORTANT FIX!
+        claims.Add(new Claim(ClaimTypes.Role, roleCode)); 
+         claims.Add(new Claim("role", roleCode));           // Optional: For frontend use
+    }
 
-            var token = new JwtSecurityToken(
-                issuer: _issuer,
-                audience: _audience,
-                claims: claims,
-                notBefore: now,
-                expires: expires,
-                signingCredentials: creds
-            );
+    var token = new JwtSecurityToken(
+        issuer: _issuer,
+        audience: _audience,
+        claims: claims,
+        notBefore: now,
+        expires: expires,
+        signingCredentials: creds
+    );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
 
         // ------------------------------------------------------------
         // Create and Store Refresh Token
@@ -176,9 +183,15 @@ namespace agriApp.Services.Auth
 
                 throw new Exception("Refresh token reuse detected. All sessions revoked.");
             }
+// Fetch mandi official role of this user (needed for Role claim)
+var official = await _db.MandiOfficials
+    .Include(m => m.Role)
+    .FirstOrDefaultAsync(m => m.UserId == user.UserProfileId);
+
+string? roleCode = official?.Role?.RoleCode;  // OFFICER / APPROVER / MANAGER
 
             // Generate new access token
-            var newAccessToken = GenerateAccessToken(user, oldRow.DeviceInfo, oldRow.IpAddress);
+            var newAccessToken = GenerateAccessToken(user, oldRow.DeviceInfo, oldRow.IpAddress,roleCode);
 
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(newAccessToken);
