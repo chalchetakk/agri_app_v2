@@ -1,4 +1,5 @@
 using System;
+using agriApp.Entities.Stakeholders;
 
 namespace agriApp.Entities.Stakeholders
 {

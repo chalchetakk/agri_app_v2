@@ -69,5 +69,22 @@ public async Task<IActionResult> DeleteLot(string preLotId)
     return Ok(new { message = "Lot deleted successfully." });
 }
 
+// SellerLotsController.cs
+
+[HttpGet("auction/lots")]
+public async Task<IActionResult> GetMyAuctionLots()
+{
+    var result = await _lotService.GetMyAuctionLotsAsync(GetUserId(), isFarmer: false);
+    return Ok(result);
+}
+
+[HttpGet("auction/lots/{arrivedLotId}")]
+public async Task<IActionResult> GetMyAuctionLot(int arrivedLotId)
+{
+    var result = await _lotService.GetMyAuctionLotAsync(arrivedLotId, GetUserId(), isFarmer: false);
+    return result == null ? NotFound() : Ok(result);
+}
+
+
     }
 }

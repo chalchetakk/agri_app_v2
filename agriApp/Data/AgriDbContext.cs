@@ -3,6 +3,7 @@ using agriApp.Entities.Auth;
 using agriApp.Entities.Stakeholders;
 using agriApp.Entities.Market;
 using agriApp.Entities.Lots;
+using agriApp.Data.Configurations;
 
 namespace agriApp.Data
 {
@@ -37,6 +38,7 @@ public DbSet<PreRegisteredLot> PreRegisteredLots { get; set; }
 public DbSet<ArrivedLot> ArrivedLots { get; set; }
 public DbSet<LiveAuctionLot> LiveAuctionLots { get; set; }
 
+public DbSet<BuyerInterestLot> BuyerInterestLots { get; set; }
 
         // ---------------------------
         // Model configuration loader
@@ -45,6 +47,7 @@ public DbSet<LiveAuctionLot> LiveAuctionLots { get; set; }
         {
             // Load all configuration classes automatically
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AgriDbContext).Assembly);
+// modelBuilder.ApplyConfiguration(new BuyerInterestLotConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

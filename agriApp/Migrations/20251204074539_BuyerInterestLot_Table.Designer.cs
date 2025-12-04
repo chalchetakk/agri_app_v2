@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agriApp.Data;
@@ -11,9 +12,11 @@ using agriApp.Data;
 namespace agriApp.Migrations
 {
     [DbContext(typeof(AgriDbContext))]
-    partial class AgriDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204074539_BuyerInterestLot_Table")]
+    partial class BuyerInterestLot_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,9 +290,6 @@ namespace agriApp.Migrations
                         .IsRequired()
                         .HasColumnType("character varying(10)");
 
-                    b.Property<string>("PreRegisteredLotPreLotId")
-                        .HasColumnType("character varying(10)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -301,8 +301,6 @@ namespace agriApp.Migrations
                     b.HasKey("BuyerInterestLotId");
 
                     b.HasIndex("BuyerId");
-
-                    b.HasIndex("PreRegisteredLotPreLotId");
 
                     b.HasIndex("PreLotId", "BuyerId")
                         .IsUnique();
@@ -888,7 +886,7 @@ namespace agriApp.Migrations
             modelBuilder.Entity("agriApp.Entities.Lots.BuyerInterestLot", b =>
                 {
                     b.HasOne("agriApp.Entities.Stakeholders.Buyer", "Buyer")
-                        .WithMany("BuyerInterestLots")
+                        .WithMany()
                         .HasForeignKey("BuyerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -898,10 +896,6 @@ namespace agriApp.Migrations
                         .HasForeignKey("PreLotId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("agriApp.Entities.Lots.PreRegisteredLot", null)
-                        .WithMany("BuyerInterestLots")
-                        .HasForeignKey("PreRegisteredLotPreLotId");
 
                     b.Navigation("Buyer");
 
@@ -1071,11 +1065,6 @@ namespace agriApp.Migrations
                     b.Navigation("Seller");
                 });
 
-            modelBuilder.Entity("agriApp.Entities.Lots.PreRegisteredLot", b =>
-                {
-                    b.Navigation("BuyerInterestLots");
-                });
-
             modelBuilder.Entity("agriApp.Entities.Market.Crop", b =>
                 {
                     b.Navigation("Lots");
@@ -1090,8 +1079,6 @@ namespace agriApp.Migrations
 
             modelBuilder.Entity("agriApp.Entities.Stakeholders.Buyer", b =>
                 {
-                    b.Navigation("BuyerInterestLots");
-
                     b.Navigation("InterestedCrops");
                 });
 

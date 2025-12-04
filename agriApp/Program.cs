@@ -136,6 +136,8 @@ builder.Services.AddScoped<IArrivedLotService, ArrivedLotService>();
 builder.Services.AddScoped<ILiveAuctionLotService, LiveAuctionLotService>();
 
 builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+builder.Services.AddScoped<IBuyerInterestLotService, BuyerInterestLotService>();
+builder.Services.AddScoped<IBuyerLotRecommendationService, BuyerLotRecommendationService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

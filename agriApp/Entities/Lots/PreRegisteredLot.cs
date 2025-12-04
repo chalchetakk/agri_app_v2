@@ -34,6 +34,7 @@ namespace agriApp.Entities.Lots
         public string? QrCodeUrl { get; set; }
 
         public DateTime ExpectedArrivalDate { get; set; }
+public List<BuyerInterestLot> BuyerInterestLots { get; set; } = new();
 
         // Timestamps
         public DateTime CreatedAt { get; set; }

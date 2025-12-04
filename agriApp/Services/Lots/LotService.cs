@@ -6,6 +6,7 @@ using agriApp.Services.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
+using agriApp.Entities.Stakeholders;
 
 namespace agriApp.Services.Lots
 {
@@ -365,6 +366,306 @@ public async Task<bool> DeleteLotAsync(string preLotId, Guid userId, bool isFarm
     await _db.SaveChangesAsync();
 
     return true;
+}
+
+// inside agriApp.Services.Lots.LotService (add these methods)
+
+
+public async Task<List<AuctionLotListItemDto>> GetMyAuctionLotsAsync(Guid userId, bool isFarmer)
+{
+    // -----------------------------------------------------------
+    // 1. Resolve FarmerId or SellerId (SAFE)
+    // -----------------------------------------------------------
+    Guid? ownerId = null;
+
+    if (isFarmer)
+    {
+        var farmer = await _db.Farmers.FirstOrDefaultAsync(f => f.UserId == userId);
+        if (farmer == null) return new List<AuctionLotListItemDto>();
+        ownerId = farmer.FarmerId;
+    }
+    else
+    {
+        var seller = await _db.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (seller == null) return new List<AuctionLotListItemDto>();
+        ownerId = seller.SellerId;
+    }
+
+    // -----------------------------------------------------------
+    // 2. Load ArrivedLots with related tables using Includes
+    // -----------------------------------------------------------
+    var arrivedLots = await _db.ArrivedLots
+        .Where(a => isFarmer ? a.FarmerId == ownerId : a.SellerId == ownerId)
+        .Include(a => a.Crop)
+        .Include(a => a.Mandi)
+        .Include(a => a.PreRegisteredLot)
+        .ToListAsync();
+
+    // -----------------------------------------------------------
+    // 3. Load LiveAuctionLots (optional)
+    // -----------------------------------------------------------
+    var arrivedIds = arrivedLots.Select(a => a.ArrivedLotId).ToList();
+
+    var liveMap = await _db.LiveAuctionLots
+        .Where(l => arrivedIds.Contains(l.ArrivedLotId))
+        .ToDictionaryAsync(l => l.ArrivedLotId);
+
+    // -----------------------------------------------------------
+    // 4. Build DTO list
+    // -----------------------------------------------------------
+    var result = new List<AuctionLotListItemDto>();
+
+    foreach (var a in arrivedLots)
+    {
+        liveMap.TryGetValue(a.ArrivedLotId, out var live);
+
+        result.Add(new AuctionLotListItemDto
+        {
+            ArrivedLotId = a.ArrivedLotId,
+            PreLotId = a.PreLotId,
+
+            CropId = a.CropId,
+            CropName = a.Crop?.CropName ?? "",
+
+            Quantity = a.Quantity,
+            Grade = a.Grade,
+            LotImageUrl = a.LotImageUrl,
+            QrCodeUrl = a.QrCodeUrl,
+
+            Status = a.Status,
+            CreatedAt = a.CreatedAt,
+
+            MandiId = a.MandiId,
+            MandiName = a.Mandi?.MandiName ?? "",
+
+            // Live auction
+            LiveAuctionLotId = live?.LiveAuctionLotId,
+            AuctionStatus = live?.AuctionStatus,
+            FinalPrice = live?.FinalPrice,
+            BuyerName = live?.BuyerName,
+            BuyerMobile = live?.BuyerMobile
+        });
+    }
+
+    return result.OrderByDescending(r => r.CreatedAt).ToList();
+}
+
+
+public async Task<AuctionLotDetailDto?> GetMyAuctionLotAsync(int arrivedLotId, Guid userId, bool isFarmer)
+{
+    var arrived = await _db.ArrivedLots
+        .Include(a => a.Crop)
+        .Include(a => a.Mandi)
+        .Include(a => a.PreRegisteredLot)
+        .FirstOrDefaultAsync(a => a.ArrivedLotId == arrivedLotId);
+
+    if (arrived == null) return null;
+
+    // ownership check
+    if (isFarmer)
+    {
+        var farmer = await _db.Farmers.FirstOrDefaultAsync(f => f.UserId == userId);
+        if (farmer == null || arrived.FarmerId != farmer.FarmerId) return null;
+    }
+    else
+    {
+        var seller = await _db.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (seller == null || arrived.SellerId != seller.SellerId) return null;
+    }
+
+    var live = await _db.LiveAuctionLots.FirstOrDefaultAsync(l => l.ArrivedLotId == arrivedLotId);
+
+    return new AuctionLotDetailDto
+    {
+        ArrivedLotId = arrived.ArrivedLotId,
+        PreLotId = arrived.PreLotId,
+        MandiId = arrived.MandiId,
+        MandiName = arrived.Mandi?.MandiName ?? "",
+        CropId = arrived.CropId,
+        CropName = arrived.Crop?.CropName ?? "",
+        Quantity = arrived.Quantity,
+        Grade = arrived.Grade,
+        LotImageUrl = arrived.LotImageUrl,
+        QrCodeUrl = arrived.QrCodeUrl,
+        Status = arrived.Status,
+        CreatedAt = arrived.CreatedAt,
+        UpdatedAt = arrived.UpdatedAt,
+        ExpectedArrivalDate = arrived.PreRegisteredLot?.ExpectedArrivalDate,
+        SellingAmount = arrived.PreRegisteredLot?.SellingAmount,
+
+
+        LiveAuctionLotId = live?.LiveAuctionLotId,
+        AuctionStatus = live?.AuctionStatus,
+        FinalPrice = live?.FinalPrice,
+        BuyerName = live?.BuyerName,
+        BuyerMobile = live?.BuyerMobile
+    };
+}
+public async Task<List<BidListItemDto>> GetBidsForLotAsync(string preLotId, Guid userId, bool isFarmer)
+{
+    // Validate lot exists and belongs to owner
+    var lot = await _db.PreRegisteredLots
+        .Include(l => l.Farmer)
+        .Include(l => l.Seller)
+        .FirstOrDefaultAsync(l => l.PreLotId == preLotId);
+
+    if (lot == null)
+        return new List<BidListItemDto>();
+
+    // Ownership check
+    if (isFarmer)
+    {
+        var farmer = await _db.Farmers.FirstOrDefaultAsync(f => f.UserId == userId);
+        if (farmer == null || lot.FarmerId != farmer.FarmerId)
+            return new List<BidListItemDto>();
+    }
+    else
+    {
+        var seller = await _db.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (seller == null || lot.SellerId != seller.SellerId)
+            return new List<BidListItemDto>();
+    }
+
+    var bids = await _db.BuyerInterestLots
+        .Include(b => b.Buyer).ThenInclude(u => u.User)
+        .Where(b => b.PreLotId == preLotId)
+        .OrderByDescending(b => b.CreatedAt)
+        .ToListAsync();
+
+    return bids.Select(b => new BidListItemDto
+    {
+        BuyerInterestLotId = b.BuyerInterestLotId,
+        BuyerName = b.Buyer.BuyerName,
+        BuyerMobile = b.Buyer.User?.MobileNumber ?? "",
+        BidAmount = (float)b.BuyerBidAmount,
+        Status = b.Status,
+        CreatedAt = b.CreatedAt
+    }).ToList();
+}
+public async Task<bool> AcceptBidAsync(string preLotId, int buyerInterestLotId, Guid userId, bool isFarmer)
+{
+    var lot = await _db.PreRegisteredLots
+        .Include(l => l.Farmer)
+        .Include(l => l.Seller)
+        .FirstOrDefaultAsync(l => l.PreLotId == preLotId);
+
+    if (lot == null)
+        return false;
+
+    // Owner check
+    if (isFarmer)
+    {
+        var farmer = await _db.Farmers.FirstOrDefaultAsync(f => f.UserId == userId);
+        if (farmer == null || lot.FarmerId != farmer.FarmerId)
+            return false;
+    }
+    else
+    {
+        var seller = await _db.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (seller == null || lot.SellerId != seller.SellerId)
+            return false;
+    }
+
+    var selectedBid = await _db.BuyerInterestLots
+        .FirstOrDefaultAsync(b => b.BuyerInterestLotId == buyerInterestLotId && b.PreLotId == preLotId);
+
+    if (selectedBid == null)
+        return false;
+
+    // Accept this bid
+    selectedBid.Status = "accepted";
+    selectedBid.UpdatedAt = DateTime.UtcNow;
+
+    // Reject all other bids
+    var otherBids = _db.BuyerInterestLots
+        .Where(b => b.PreLotId == preLotId && b.BuyerInterestLotId != buyerInterestLotId);
+
+    await otherBids.ForEachAsync(b =>
+    {
+        b.Status = "rejected";
+        b.UpdatedAt = DateTime.UtcNow;
+    });
+
+    lot.Status = "preSold"; // optional based on your business flow
+    lot.UpdatedAt = DateTime.UtcNow;
+
+    await _db.SaveChangesAsync();
+    return true;
+}
+public async Task<bool> RejectBidAsync(string preLotId, int buyerInterestLotId, Guid userId, bool isFarmer)
+{
+    var lot = await _db.PreRegisteredLots
+        .Include(l => l.Farmer)
+        .Include(l => l.Seller)
+        .FirstOrDefaultAsync(l => l.PreLotId == preLotId);
+
+    if (lot == null)
+        return false;
+
+    // Owner check
+    if (isFarmer)
+    {
+        var farmer = await _db.Farmers.FirstOrDefaultAsync(f => f.UserId == userId);
+        if (farmer == null || lot.FarmerId != farmer.FarmerId)
+            return false;
+    }
+    else
+    {
+        var seller = await _db.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (seller == null || lot.SellerId != seller.SellerId)
+            return false;
+    }
+
+    var bid = await _db.BuyerInterestLots
+        .FirstOrDefaultAsync(b => b.BuyerInterestLotId == buyerInterestLotId && b.PreLotId == preLotId);
+
+    if (bid == null)
+        return false;
+
+    bid.Status = "rejected";
+    bid.UpdatedAt = DateTime.UtcNow;
+
+    await _db.SaveChangesAsync();
+    return true;
+}
+public async Task<List<ReceivedBidListItemDto>> GetAllReceivedBidsAsync(Guid userId, bool isFarmer)
+{
+    Guid ownerId;
+
+    if (isFarmer)
+    {
+        ownerId = (await _db.Farmers.FirstAsync(f => f.UserId == userId)).FarmerId;
+    }
+    else
+    {
+        ownerId = (await _db.Sellers.FirstAsync(s => s.UserId == userId)).SellerId;
+    }
+
+    var lots = await _db.PreRegisteredLots
+        .Where(l => (isFarmer ? l.FarmerId : l.SellerId) == ownerId)
+        .Select(l => l.PreLotId)
+        .ToListAsync();
+
+    var bids = await _db.BuyerInterestLots
+        .Include(b => b.Buyer).ThenInclude(u => u.User)
+        .Include(b => b.PreRegisteredLot).ThenInclude(pl => pl.Crop)
+        .Include(b => b.PreRegisteredLot).ThenInclude(pl => pl.Mandi)
+        .Where(b => lots.Contains(b.PreLotId))
+        .OrderByDescending(b => b.CreatedAt)
+        .ToListAsync();
+
+    return bids.Select(b => new ReceivedBidListItemDto
+    {
+        PreLotId = b.PreLotId,
+        BuyerInterestLotId = b.BuyerInterestLotId,
+        BidAmount = (float)b.BuyerBidAmount,
+        Status = b.Status,
+        BuyerName = b.Buyer.BuyerName,
+        BuyerMobile = b.Buyer.User?.MobileNumber ?? "",
+        CropName = b.PreRegisteredLot?.Crop?.CropName ?? "",
+        MandiName = b.PreRegisteredLot?.Mandi?.MandiName ?? "",
+        CreatedAt = b.CreatedAt
+    }).ToList();
 }
 
 
