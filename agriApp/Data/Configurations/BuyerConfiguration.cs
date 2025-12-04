@@ -15,6 +15,7 @@ namespace agriApp.Data.Configurations
             builder.Property(x => x.BuyerName).IsRequired().HasMaxLength(200);
             builder.Property(x => x.BusinessName).IsRequired().HasMaxLength(200);
             builder.Property(x => x.BusinessId).HasMaxLength(50);
+            builder.Property(x => x.Email).HasMaxLength(100);
             builder.Property(x => x.Location).HasMaxLength(200);
             builder.Property(x => x.ProfilePhotoUrl).HasMaxLength(500);
 

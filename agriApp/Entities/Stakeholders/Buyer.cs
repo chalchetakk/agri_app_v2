@@ -15,7 +15,10 @@ namespace agriApp.Entities.Stakeholders
         public string BuyerName { get; set; } = default!;
         public string? BusinessId { get; set; }
         public string BusinessName { get; set; } = default!;
+
+        public string? Email { get; set; }
         public string? Location { get; set; }
+
         public string? ProfilePhotoUrl { get; set; }
 
         public DateTime CreatedAt { get; set; }
@@ -26,7 +29,7 @@ public List<BuyerInterestLot> BuyerInterestLots { get; set; } = new();
 
         public Buyer() {}
 
-        public Buyer(Guid userId, string buyerName, string businessName, string? businessId, string? location, string? profilePhotoUrl)
+        public Buyer(Guid userId, string buyerName, string businessName, string? businessId, string? email, string? location, string? profilePhotoUrl)
         {
             BuyerId = Guid.NewGuid();
             UserId = userId;
@@ -34,6 +37,7 @@ public List<BuyerInterestLot> BuyerInterestLots { get; set; } = new();
             BuyerName = buyerName;
             BusinessName = businessName;
             BusinessId = businessId;
+            Email = email;
             Location = location;
             ProfilePhotoUrl = profilePhotoUrl;
 

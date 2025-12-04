@@ -92,6 +92,8 @@ namespace agriApp.Controllers
         public string BuyerName { get; set; } = default!;
         public string? BusinessId { get; set; }
         public string BusinessName { get; set; } = default!;
+
+        public string? Email { get; set; }
         public string? Location { get; set; }
         public string? ProfilePhotoUrl { get; set; }
         public List<int> InterestedCropIds { get; set; } = new();
@@ -103,6 +105,8 @@ namespace agriApp.Controllers
         public string BuyerName { get; set; } = default!;
         public string? BusinessId { get; set; }
         public string BusinessName { get; set; } = default!;
+
+        public string? Email { get; set;}
         public string? Location { get; set; }
         public string? ProfilePhotoUrl { get; set; }
         public List<int> InterestedCropIds { get; set; } = new();

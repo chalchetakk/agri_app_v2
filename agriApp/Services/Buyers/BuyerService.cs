@@ -40,6 +40,7 @@ namespace agriApp.Services.Buyers
                 request.BuyerName,
                 request.BusinessName,
                 request.BusinessId,
+                request.Email,
                 request.Location,
                 request.ProfilePhotoUrl
             );
