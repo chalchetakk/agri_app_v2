@@ -161,8 +161,10 @@ app.UseHttpsRedirection();
 app.UseAuthentication();  // ⭐ REQUIRED BEFORE UseAuthorization()
 app.UseAuthorization();
 
-app.MapControllers();
 
 // Later in the app setup
 app.UseCors("AllowAll");
+app.MapControllers();
+
+
 app.Run();
