@@ -15,13 +15,15 @@ namespace agriApp.Controllers
     {
         private readonly IAuctionService _auctionService;
         private readonly IArrivedLotService _arrivedLotService;
-
-        public MandiOfficialAuctionController(
-            IAuctionService auctionService,
-            IArrivedLotService arrivedLotService)
+private readonly IPreRegisteredLotQueryService _preLotQuery;        
+public MandiOfficialAuctionController(
+            IAuctionService auctionService, 
+            IArrivedLotService arrivedLotService,
+            IPreRegisteredLotQueryService preLotQuery)
         {
             _auctionService = auctionService;
             _arrivedLotService = arrivedLotService;
+            _preLotQuery = preLotQuery;
         }
 
         // ----------------------------------------------------------
@@ -32,14 +34,19 @@ namespace agriApp.Controllers
         public async Task<IActionResult> GetPreRegisteredLots([FromQuery] int mandiId)
         {
             // TODO: implement PreRegisteredLotService.GetByMandi(mandiId)
-            return Ok("Implement service call to fetch PreRegisteredLots for mandi");
+            // return Ok("Implement service call to fetch PreRegisteredLots for mandi");
+            var lots = await _preLotQuery.GetLotsForMandiAsync(mandiId);
+    return Ok(lots);
         }
 
         [Authorize(Roles = "MANAGER,OFFICER")]
         [HttpGet("mandi/preRegisteredLots/{preLotId}")]
         public async Task<IActionResult> GetPreRegisteredLot(string preLotId)
         {
-            return Ok("Implement service call to fetch single PreRegisteredLot detail");
+            // return Ok("Implement service call to fetch single PreRegisteredLot detail");
+            var lot = await _preLotQuery.GetLotByIdAsync(preLotId);
+    if (lot == null) return NotFound();
+    return Ok(lot);
         }
 
         // ----------------------------------------------------------

@@ -142,6 +142,8 @@ builder.Services.AddScoped<IBuyerLotRecommendationService, BuyerLotRecommendatio
 
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 
+builder.Services.AddScoped<IPreRegisteredLotQueryService, PreRegisteredLotQueryService>();
+
 // ----------------------------------------
 // 5️⃣ Build app
 // ----------------------------------------
