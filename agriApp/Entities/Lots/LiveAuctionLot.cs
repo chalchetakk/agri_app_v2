@@ -1,5 +1,7 @@
 using System;
 using agriApp.Entities.Stakeholders;
+using agriApp.Entities.Auctions;
+
 namespace agriApp.Entities.Lots
 {
     public class LiveAuctionLot
@@ -9,6 +11,10 @@ namespace agriApp.Entities.Lots
         // Link to ArrivedLots (mandatory)
         public int ArrivedLotId { get; set; }
         public ArrivedLot? ArrivedLot { get; set; }
+
+// ⭐ NEW — Link to Auction
+        public Guid? AuctionId { get; set; }
+        public Auction? Auction { get; set; }
 
         // Auction Status: pending, sold, unsold
         public string AuctionStatus { get; set; } = default!;

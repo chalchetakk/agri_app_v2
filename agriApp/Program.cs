@@ -10,6 +10,7 @@ using agriApp.Services.MandiOfficials;
 using agriApp.Services.Mandis;
 using agriApp.Services.Lots;
 using agriApp.Services.Files;
+using agriApp.Services.Auctions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -138,6 +139,8 @@ builder.Services.AddScoped<ILiveAuctionLotService, LiveAuctionLotService>();
 builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
 builder.Services.AddScoped<IBuyerInterestLotService, BuyerInterestLotService>();
 builder.Services.AddScoped<IBuyerLotRecommendationService, BuyerLotRecommendationService>();
+
+builder.Services.AddScoped<IAuctionService, AuctionService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

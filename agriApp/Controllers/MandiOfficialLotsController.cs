@@ -183,17 +183,25 @@ public async Task<IActionResult> CreateFromPreLot([FromQuery] string preLotId)
         // 5. Update Status
         // ----------------------------------------------------
         [Authorize(Roles = "APPROVER")]
-        [HttpPatch("arrived/{arrivedLotId}/status")]
-        public async Task<IActionResult> UpdateStatus(int arrivedLotId, [FromBody] string newStatus)
-        {
-            var lot = await _arrivedLotService.UpdateStatusAsync(arrivedLotId, newStatus);
-            if (lot == null) return NotFound();
+[HttpPatch("arrived/{arrivedLotId}/status")]
+public async Task<IActionResult> UpdateStatus(int arrivedLotId,
+    [FromBody] ArrivedLotStatusUpdateDto dto)
+{
+    // VALIDATION
+    if (dto.NewStatus == "readyForAuction" && dto.AuctionId == null)
+        return BadRequest("AuctionId is required when marking readyForAuction.");
 
-            if (newStatus == "readyForAuction")
-                await _auctionService.CreateAuctionEntryAsync(arrivedLotId);
+    var lot = await _arrivedLotService.UpdateStatusAsync(
+        arrivedLotId,
+        dto.NewStatus,
+        dto.AuctionId
+    );
 
-            return Ok(new ArrivedLotResponseDto(lot));
-        }
+    if (lot == null) return NotFound();
+
+    return Ok(new ArrivedLotResponseDto(lot));
+}
+
 
 
         // ----------------------------------------------------
@@ -337,6 +345,11 @@ public async Task<IActionResult> GetArrivedLotDetails(int arrivedLotId)
     public Guid? BuyerId { get; set; }
     public string? BuyerName { get; set; }
     public string? BuyerMobile { get; set; }
+}
+public class ArrivedLotStatusUpdateDto
+{
+    public string NewStatus { get; set; } = default!;
+    public Guid? AuctionId { get; set; }  // required for readyForAuction
 }
 
     }

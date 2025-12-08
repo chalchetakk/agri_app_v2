@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Data;
 using agriApp.Entities.Lots;
@@ -20,7 +19,9 @@ namespace agriApp.Services.Lots
             _fileStorage = fileStorage;
         }
 
-        // Generate QR for ArrivedLotId
+        // ----------------------------------------------------
+        // QR Code Generator
+        // ----------------------------------------------------
         private async Task<string> GenerateArrivedQrAsync(int arrivedLotId)
         {
             using var qrGen = new QRCodeGenerator();
@@ -37,36 +38,39 @@ namespace agriApp.Services.Lots
             return await _fileStorage.UploadAsync(qrFile, "arrived-lots/qrcodes");
         }
 
+        // ----------------------------------------------------
         // Create ArrivedLot (manual or from preLot)
+        // ----------------------------------------------------
         public async Task<ArrivedLot> CreateArrivedLotAsync(ArrivedLot lot)
-{
-    lot.CreatedAt = DateTime.UtcNow;
-    lot.UpdatedAt = DateTime.UtcNow;
+        {
+            lot.CreatedAt = DateTime.UtcNow;
+            lot.UpdatedAt = DateTime.UtcNow;
 
-    // 🔥 FIX: temporary non-null so database doesn’t fail
-    lot.QrCodeUrl = "pending";
+            // Temporary QR so DB insert doesn't fail
+            lot.QrCodeUrl = "pending";
 
-    _db.ArrivedLots.Add(lot);
-    await _db.SaveChangesAsync();  // now DB accepts row because QrCodeUrl has value
+            _db.ArrivedLots.Add(lot);
+            await _db.SaveChangesAsync();
 
-    // Generate real QR code
-    lot.QrCodeUrl = await GenerateArrivedQrAsync(lot.ArrivedLotId);
-    lot.UpdatedAt = DateTime.UtcNow;
+            // Generate final QR
+            lot.QrCodeUrl = await GenerateArrivedQrAsync(lot.ArrivedLotId);
+            lot.UpdatedAt = DateTime.UtcNow;
 
-    _db.ArrivedLots.Update(lot);
-    await _db.SaveChangesAsync();
+            _db.ArrivedLots.Update(lot);
+            await _db.SaveChangesAsync();
 
-    return lot;
-}
+            return lot;
+        }
 
-
-        // Edit ArrivedLot anytime before sold/unsold
+        // ----------------------------------------------------
+        // Edit ArrivedLot (only before auction result)
+        // ----------------------------------------------------
         public async Task<ArrivedLot?> EditArrivedLotAsync(int arrivedLotId, Action<ArrivedLot> applyChanges)
         {
             var lot = await _db.ArrivedLots.FirstOrDefaultAsync(x => x.ArrivedLotId == arrivedLotId);
             if (lot == null) return null;
 
-            // Cannot edit after auction result
+            // Prevent editing after sold/unsold
             var auction = await _db.LiveAuctionLots
                 .FirstOrDefaultAsync(x => x.ArrivedLotId == arrivedLotId);
 
@@ -82,25 +86,62 @@ namespace agriApp.Services.Lots
             return lot;
         }
 
-        // Status update: arrived → verified → readyForAuction
-        public async Task<ArrivedLot?> UpdateStatusAsync(int arrivedLotId, string newStatus)
+        // ----------------------------------------------------
+        // STATUS WORKFLOW
+        // arrived → verified → readyForAuction
+        // ----------------------------------------------------
+        public async Task<ArrivedLot?> UpdateStatusAsync(int arrivedLotId, string newStatus, Guid? auctionId = null)
         {
-            var lot = await _db.ArrivedLots.FirstOrDefaultAsync(x => x.ArrivedLotId == arrivedLotId);
-            if (lot == null) return null;
+            var lot = await _db.ArrivedLots
+                .FirstOrDefaultAsync(x => x.ArrivedLotId == arrivedLotId);
 
-            if (lot.Status == "arrived" && newStatus == "verified") { }
-            else if (lot.Status == "verified" && newStatus == "readyForAuction") { }
+            if (lot == null)
+                return null;
+
+            // --------------------------------------
+            // ARRIVED → VERIFIED
+            // --------------------------------------
+            if (lot.Status == "arrived" && newStatus == "verified")
+            {
+                lot.Status = "verified";
+            }
+
+            // --------------------------------------
+            // VERIFIED → READYFORAUCTION
+            // requires AuctionId
+            // --------------------------------------
+            else if (lot.Status == "verified" && newStatus == "readyForAuction")
+            {
+                if (auctionId == null)
+                    throw new Exception("AuctionId is required to mark as readyForAuction.");
+
+                lot.Status = "readyForAuction";
+
+                // Create LiveAuctionLot entry
+                var live = new LiveAuctionLot
+                {
+                    ArrivedLotId = lot.ArrivedLotId,
+                    AuctionId = auctionId,
+                    AuctionStatus = "pending",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _db.LiveAuctionLots.Add(live);
+            }
+
+            // --------------------------------------
+            // INVALID TRANSITION
+            // --------------------------------------
             else
+            {
                 throw new Exception("Invalid status transition.");
+            }
 
-            lot.Status = newStatus;
             lot.UpdatedAt = DateTime.UtcNow;
-
-            _db.ArrivedLots.Update(lot);
             await _db.SaveChangesAsync();
 
             return lot;
         }
     }
 }
- 

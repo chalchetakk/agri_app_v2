@@ -4,7 +4,7 @@ using agriApp.Entities.Stakeholders;
 using agriApp.Entities.Market;
 using agriApp.Entities.Lots;
 using agriApp.Data.Configurations;
-
+using agriApp.Entities.Auctions;
 namespace agriApp.Data
 {
     public class AgriDbContext : DbContext
@@ -40,6 +40,7 @@ public DbSet<LiveAuctionLot> LiveAuctionLots { get; set; }
 
 public DbSet<BuyerInterestLot> BuyerInterestLots { get; set; }
 
+public DbSet<Auction> Auctions { get; set; }
         // ---------------------------
         // Model configuration loader
         // ---------------------------

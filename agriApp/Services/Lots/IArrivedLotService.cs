@@ -6,6 +6,8 @@ namespace agriApp.Services.Lots
     {
         Task<ArrivedLot> CreateArrivedLotAsync(ArrivedLot lot);
         Task<ArrivedLot?> EditArrivedLotAsync(int arrivedLotId, Action<ArrivedLot> applyChanges);
-        Task<ArrivedLot?> UpdateStatusAsync(int arrivedLotId, string newStatus);
+
+        // UPDATED: requires auctionId for readyForAuction
+        Task<ArrivedLot?> UpdateStatusAsync(int arrivedLotId, string newStatus, Guid? auctionId = null);
     }
 }
