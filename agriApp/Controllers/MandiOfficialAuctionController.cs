@@ -6,6 +6,7 @@ using agriApp.Dtos.Auctions;
 using agriApp.Extensions; // for User.GetUserId()
 using System;
 using System.Threading.Tasks;
+using agriApp.Dtos.Lots;
 
 namespace agriApp.Controllers
 {
@@ -15,15 +16,23 @@ namespace agriApp.Controllers
     {
         private readonly IAuctionService _auctionService;
         private readonly IArrivedLotService _arrivedLotService;
-private readonly IPreRegisteredLotQueryService _preLotQuery;        
+private readonly IPreRegisteredLotQueryService _preLotQuery;  
+
+private readonly IArrivedLotQueryService _arrivedLotQuery;
+private readonly ILiveAuctionLotService _liveAuctionLotService;
+
 public MandiOfficialAuctionController(
             IAuctionService auctionService, 
             IArrivedLotService arrivedLotService,
-            IPreRegisteredLotQueryService preLotQuery)
+            IPreRegisteredLotQueryService preLotQuery,
+            IArrivedLotQueryService arrivedLotQuery,
+            ILiveAuctionLotService liveAuctionLotService)
         {
             _auctionService = auctionService;
             _arrivedLotService = arrivedLotService;
             _preLotQuery = preLotQuery;
+            _arrivedLotQuery = arrivedLotQuery;
+            _liveAuctionLotService = liveAuctionLotService;
         }
 
         // ----------------------------------------------------------
@@ -57,7 +66,10 @@ public MandiOfficialAuctionController(
         public async Task<IActionResult> GetArrivedLots([FromQuery] int mandiId)
         {
             // TODO: implement ArrivedLotService.GetByMandi(mandiId)
-            return Ok("Implement service call to fetch ArrivedLots for mandi");
+            // return Ok("Implement service call to fetch ArrivedLots for mandi");
+        
+            var list = await _arrivedLotQuery.GetArrivedLotsForMandiAsync(mandiId);
+    return Ok(list);
         }
 
         [Authorize(Roles = "MANAGER,OFFICER")]
@@ -65,7 +77,11 @@ public MandiOfficialAuctionController(
         public async Task<IActionResult> GetArrivedLot(int arrivedLotId)
         {
             // TODO: implement ArrivedLotService.GetById(arrivedLotId)
-            return Ok("Implement service call to fetch ArrivedLot detail");
+            // return Ok("Implement service call to fetch ArrivedLot detail");
+            var lot = await _arrivedLotQuery.GetArrivedLotByIdAsync(arrivedLotId);
+    if (lot == null) return NotFound();
+
+    return Ok(lot);
         }
 
         // ----------------------------------------------------------
@@ -86,10 +102,13 @@ public MandiOfficialAuctionController(
         [HttpPost("mandi/auction/create")]
         public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionRequest dto)
         {
-            dto.CreatedByOfficialId = User.GetUserId();  // auto fill manager ID
+            dto.CreatedByOfficialId = User.GetOfficialId();  // auto fill manager ID
 
             var auction = await _auctionService.CreateAuctionAsync(dto);
-            return Ok(auction);
+            
+            // FIX: convert entity → DTO
+    var response = AuctionDtoMapper.ToDetailDto(auction);
+            return Ok(response);
         }
 
         // ----------------------------------------------------------
@@ -119,7 +138,12 @@ public MandiOfficialAuctionController(
         public async Task<IActionResult> GetSingleLiveLot(int liveAuctionLotId)
         {
             // TODO: Create LiveAuctionLotService.GetById(liveAuctionLotId)
-            return Ok("Implement LiveAuctionLotService.GetById()");
+            // return Ok("Implement LiveAuctionLotService.GetById()");
+             var result = await _liveAuctionLotService.GetByIdAsync(liveAuctionLotId);
+    if (result == null)
+        return NotFound("Lot not found");
+
+    return Ok(result);
         }
 
         // ----------------------------------------------------------
@@ -127,11 +151,31 @@ public MandiOfficialAuctionController(
         // ----------------------------------------------------------
         [Authorize(Roles = "OFFICER")]
         [HttpPatch("mandi/auction/liveLot/{liveAuctionLotId}/status")]
-        public async Task<IActionResult> UpdateLotStatus(int liveAuctionLotId, [FromBody] UpdateLiveLotStatusRequest dto)
-        {
-            // TODO: create LiveAuctionLotService.MarkSold/MarkUnsold
-            return Ok("Implement MarkSold/MarkUnsold in LiveAuctionLotService");
-        }
+        public async Task<IActionResult> UpdateLiveLotStatus(int liveAuctionLotId, [FromBody] UpdateLiveLotStatusRequest dto)
+{
+    LiveAuctionLotDto result;
+
+    if (dto.Status.ToLower() == "sold")
+    {
+        result = await _liveAuctionLotService.MarkSoldAsync(
+            liveAuctionLotId,
+            dto.FinalPrice ?? 0,
+            dto.BuyerId,
+            dto.BuyerName,
+            dto.BuyerMobile
+        );
+    }
+    else if (dto.Status.ToLower() == "unsold")
+    {
+        result = await _liveAuctionLotService.MarkUnsoldAsync(liveAuctionLotId);
+    }
+    else
+    {
+        return BadRequest("Invalid status. Allowed: sold, unsold");
+    }
+
+    return Ok(result);
+}
 
         // ----------------------------------------------------------
         // START AUCTION (OFFICER)
@@ -140,7 +184,7 @@ public MandiOfficialAuctionController(
         [HttpPatch("mandi/auction/{auctionId}/start")]
         public async Task<IActionResult> StartAuction(Guid auctionId)
         {
-            var officerId = User.GetUserId();
+            var officerId = User.GetOfficialId();
             var auction = await _auctionService.StartAuctionAsync(auctionId, officerId);
             return Ok(auction);
         }
@@ -152,7 +196,10 @@ public MandiOfficialAuctionController(
         [HttpPatch("mandi/auction/{auctionId}/end")]
         public async Task<IActionResult> EndAuction(Guid auctionId)
         {
-            var officerId = User.GetUserId();
+            // dto.CreatedByOfficialId = User.GetUserId();
+// Console.WriteLine("JWT OfficialId = " + User.GetOfficialId());
+
+            var officerId = User.GetOfficialId();
             var auction = await _auctionService.EndAuctionAsync(auctionId, officerId);
             return Ok(auction);
         }

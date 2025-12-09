@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(options =>
 //  NameClaimType = ClaimTypes.NameIdentifier // ⭐ Map JWT "sub" to User.Identity.Name
 // NameClaimType = JwtRegisteredClaimNames.Sub   // map "sub" to User.Identity.Name
 NameClaimType = JwtRegisteredClaimNames.Sub, // ⭐ ensures Name = "sub"
-          RoleClaimType = ClaimTypes.Role // IMPORTANT
+          RoleClaimType = "officialRole" // IMPORTANT
     };
 });
 
@@ -143,6 +143,9 @@ builder.Services.AddScoped<IBuyerLotRecommendationService, BuyerLotRecommendatio
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 
 builder.Services.AddScoped<IPreRegisteredLotQueryService, PreRegisteredLotQueryService>();
+
+
+builder.Services.AddScoped<IArrivedLotQueryService, ArrivedLotQueryService>();
 
 // ----------------------------------------
 // 5️⃣ Build app

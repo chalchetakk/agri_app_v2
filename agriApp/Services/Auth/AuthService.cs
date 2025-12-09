@@ -47,6 +47,9 @@ namespace agriApp.Services.Auth
         .Include(m => m.Role)
         .FirstOrDefaultAsync(m => m.UserId == user.UserProfileId);
 
+
+Guid? officialId = official?.OfficialId;
+int? mandiId = official?.MandiId;
     string? roleCode = official?.Role?.RoleCode; 
     // Now roleCode could be: OFFICER, APPROVER, MANAGER, or null
 
@@ -67,7 +70,9 @@ namespace agriApp.Services.Auth
         user,
         deviceInfo ?? "unknown-device",
         ipAddress ?? "unknown-ip",
-        roleCode     // <-- IMPORTANT
+        roleCode,     // <-- IMPORTANT
+        officialId,
+        mandiId
     );
 
     // Extract JTI

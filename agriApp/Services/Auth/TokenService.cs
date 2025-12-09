@@ -45,7 +45,7 @@ namespace agriApp.Services.Auth
         // ------------------------------------------------------------
         // Generate Access Token (HS256)
         // ------------------------------------------------------------
-        public string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress, string? roleCode)
+        public string GenerateAccessToken(UserProfile user, string deviceInfo, string ipAddress, string? roleCode, Guid? officialId, int? mandiId)
 {
     var jti = Guid.NewGuid().ToString();
     var now = DateTime.UtcNow;
@@ -59,15 +59,22 @@ namespace agriApp.Services.Auth
         new Claim(JwtRegisteredClaimNames.Sub, user.UserProfileId.ToString()),
         new Claim(JwtRegisteredClaimNames.Jti, jti),
         new Claim("mobile", user.MobileNumber),
-        new Claim("isVerified", user.IsVerified.ToString())
+        new Claim("isVerified", user.IsVerified.ToString()),
+        
     };
 
-    if (!string.IsNullOrWhiteSpace(roleCode))
-    {
-        // THE MOST IMPORTANT FIX!
-        claims.Add(new Claim(ClaimTypes.Role, roleCode)); 
-         claims.Add(new Claim("role", roleCode));           // Optional: For frontend use
-    }
+    if (officialId != null)
+    claims.Add(new Claim("officialId", officialId.ToString()));
+
+if (mandiId != null)
+    claims.Add(new Claim("mandiId", mandiId.ToString()));
+
+if (!string.IsNullOrWhiteSpace(roleCode))
+{
+    claims.Add(new Claim(ClaimTypes.Role, roleCode));
+    claims.Add(new Claim("officialRole", roleCode));
+}
+
 
     var token = new JwtSecurityToken(
         issuer: _issuer,
@@ -189,9 +196,11 @@ var official = await _db.MandiOfficials
     .FirstOrDefaultAsync(m => m.UserId == user.UserProfileId);
 
 string? roleCode = official?.Role?.RoleCode;  // OFFICER / APPROVER / MANAGER
+Guid? officialId = official?.OfficialId;
+int? mandiId = official?.MandiId;
 
             // Generate new access token
-            var newAccessToken = GenerateAccessToken(user, oldRow.DeviceInfo, oldRow.IpAddress,roleCode);
+            var newAccessToken = GenerateAccessToken(user, oldRow.DeviceInfo, oldRow.IpAddress,roleCode,officialId, mandiId);
 
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(newAccessToken);
