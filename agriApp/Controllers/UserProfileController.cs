@@ -187,7 +187,8 @@ public async Task<IActionResult> GetRoleStatus()
         isFarmer = status.IsFarmer,
         isBuyer = status.IsBuyer,
         isSeller = status.IsSeller,
-        isMandiOfficial = status.IsMandiOfficial
+        isMandiOfficial = status.IsMandiOfficial,
+        isAnchor = status.IsAnchor
     });
 }
 
@@ -223,5 +224,7 @@ public async Task<IActionResult> GetRoleStatus()
         public bool IsBuyer { get; set; }
         public bool IsSeller { get; set; }
         public bool IsMandiOfficial { get; set; }
+
+        public bool IsAnchor {get; set;}
     }
 }

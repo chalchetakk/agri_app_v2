@@ -14,5 +14,6 @@ namespace agriApp.Services.Roles
         public bool IsBuyer { get; set; }
         public bool IsSeller { get; set; }
         public bool IsMandiOfficial { get; set; }
+        public bool IsAnchor {get; set;}
     }
 }

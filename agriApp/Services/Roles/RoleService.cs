@@ -28,8 +28,9 @@ namespace agriApp.Services.Roles
         // IsMandiOfficial = false,
 
         IsSeller = await _db.Sellers.AnyAsync(s => s.UserId == userId),
-IsMandiOfficial = await _db.MandiOfficials.AnyAsync(m => m.UserId == userId)
-
+IsMandiOfficial = await _db.MandiOfficials.AnyAsync(m => m.UserId == userId),
+// NEW
+                IsAnchor = await _db.Anchors.AnyAsync(a => a.UserId == userId)
             };
 
             return result;

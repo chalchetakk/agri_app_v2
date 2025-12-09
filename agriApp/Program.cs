@@ -11,6 +11,7 @@ using agriApp.Services.Mandis;
 using agriApp.Services.Lots;
 using agriApp.Services.Files;
 using agriApp.Services.Auctions;
+using agriApp.Services.Anchors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -146,7 +147,7 @@ builder.Services.AddScoped<IPreRegisteredLotQueryService, PreRegisteredLotQueryS
 
 
 builder.Services.AddScoped<IArrivedLotQueryService, ArrivedLotQueryService>();
-
+builder.Services.AddScoped<IAnchorService, AnchorService>();
 // ----------------------------------------
 // 5️⃣ Build app
 // ----------------------------------------
