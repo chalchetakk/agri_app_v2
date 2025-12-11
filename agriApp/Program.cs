@@ -149,7 +149,7 @@ builder.Services.AddScoped<IPreRegisteredLotQueryService, PreRegisteredLotQueryS
 
 builder.Services.AddScoped<IArrivedLotQueryService, ArrivedLotQueryService>();
 builder.Services.AddScoped<IAnchorService, AnchorService>();
-
+builder.Services.AddScoped<IMandiOfficialService, MandiOfficialService>();
 // -------------------------------------------------------------
 // ANCHOR SERVICES — Dependency Injection
 // -------------------------------------------------------------

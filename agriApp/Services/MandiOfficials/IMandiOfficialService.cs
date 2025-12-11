@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using agriApp.Controllers;
+using agriApp.DTOs.MandiOfficials;
 
 namespace agriApp.Services.MandiOfficials
 {
@@ -10,6 +11,8 @@ namespace agriApp.Services.MandiOfficials
         Task<bool> OfficialExistsAsync(Guid userId);
         Task<MandiOfficialProfileDto?> GetOfficialProfileAsync(Guid userId);
         Task<List<OfficialRoleDto>> GetRolesAsync();
+        Task<List<MandiOfficerListDto>> GetOfficersByMandiIdAsync(int mandiId);
+
 
     }
 }

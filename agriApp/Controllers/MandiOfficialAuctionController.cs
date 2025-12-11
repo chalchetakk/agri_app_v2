@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using agriApp.Services.Auctions;
 using agriApp.Services.Lots;
+using agriApp.Services.MandiOfficials;
 using agriApp.Dtos.Auctions;
+using agriApp.DTOs.MandiOfficials;
 using agriApp.Extensions; // for User.GetUserId()
 using System;
 using System.Threading.Tasks;
@@ -21,18 +23,21 @@ private readonly IPreRegisteredLotQueryService _preLotQuery;
 private readonly IArrivedLotQueryService _arrivedLotQuery;
 private readonly ILiveAuctionLotService _liveAuctionLotService;
 
+private readonly IMandiOfficialService _mandiOfficialService;
 public MandiOfficialAuctionController(
             IAuctionService auctionService, 
             IArrivedLotService arrivedLotService,
             IPreRegisteredLotQueryService preLotQuery,
             IArrivedLotQueryService arrivedLotQuery,
-            ILiveAuctionLotService liveAuctionLotService)
+            ILiveAuctionLotService liveAuctionLotService,
+            IMandiOfficialService mandiOfficialService)
         {
             _auctionService = auctionService;
             _arrivedLotService = arrivedLotService;
             _preLotQuery = preLotQuery;
             _arrivedLotQuery = arrivedLotQuery;
             _liveAuctionLotService = liveAuctionLotService;
+            _mandiOfficialService = mandiOfficialService;
         }
 
         // ----------------------------------------------------------
@@ -203,5 +208,14 @@ public MandiOfficialAuctionController(
             var auction = await _auctionService.EndAuctionAsync(auctionId, officerId);
             return Ok(auction);
         }
+
+        [Authorize(Roles = "MANAGER")]
+[HttpGet("mandi/mandiOfficersList")]
+public async Task<IActionResult> GetMandiOfficers([FromQuery] int mandiId)
+{
+    var officers = await _mandiOfficialService.GetOfficersByMandiIdAsync(mandiId);
+    return Ok(officers);
+}
+
     }
 }

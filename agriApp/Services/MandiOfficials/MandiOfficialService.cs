@@ -2,6 +2,7 @@ using agriApp.Data;
 using agriApp.Entities.Stakeholders;
 using Microsoft.EntityFrameworkCore;
 using agriApp.Controllers;
+using agriApp.DTOs.MandiOfficials;
 
 namespace agriApp.Services.MandiOfficials
 {
@@ -97,6 +98,21 @@ namespace agriApp.Services.MandiOfficials
             OfficialRoleId = r.OfficialRoleId,
             OfficialRoleName = r.OfficialRoleName,
             RoleCode = r.RoleCode
+        })
+        .ToListAsync();
+}
+public async Task<List<MandiOfficerListDto>> GetOfficersByMandiIdAsync(int mandiId)
+{
+    return await _db.MandiOfficials
+        .Where(x => x.MandiId == mandiId)
+        .Include(x => x.Role)
+        .Select(x => new MandiOfficerListDto
+        {
+            OfficialId = x.OfficialId,
+            OfficialName = x.OfficialName,
+            Email = x.Email,
+            EmployeeId = x.EmployeeId,
+            RoleCode = x.Role.RoleCode
         })
         .ToListAsync();
 }
