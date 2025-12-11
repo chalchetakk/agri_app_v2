@@ -61,7 +61,7 @@ public MandiOfficialAuctionController(
         // ----------------------------------------------------------
         // ARRIVED LOT LIST (MANDI)
         // ----------------------------------------------------------
-        [Authorize(Roles = "MANAGER,OFFICER")]
+        [Authorize(Roles = "MANAGER,APPROVER,OFFICER")]
         [HttpGet("mandi/arrivedLots")]
         public async Task<IActionResult> GetArrivedLots([FromQuery] int mandiId)
         {
@@ -72,7 +72,7 @@ public MandiOfficialAuctionController(
     return Ok(list);
         }
 
-        [Authorize(Roles = "MANAGER,OFFICER")]
+        [Authorize(Roles = "MANAGER,APPROVER,OFFICER")]
         [HttpGet("mandi/arrivedLots/{arrivedLotId}")]
         public async Task<IActionResult> GetArrivedLot(int arrivedLotId)
         {

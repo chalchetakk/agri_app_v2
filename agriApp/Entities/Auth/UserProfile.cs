@@ -1,96 +1,96 @@
-using System;
+    using System;
 
-namespace agriApp.Entities.Auth
-{
-    public class UserProfile
+    namespace agriApp.Entities.Auth
     {
-        public Guid UserProfileId { get; set; }
-
-        public string MobileNumber { get; set; } = default!;
-
-        public string PreferredLanguage { get; set; } = "en";
-
-        public bool IsVerified { get; set; }
-
-        public DateTime? LastLoginAt { get; set; }
-
-        public DateTime CreationTime { get; set; }
-        public DateTime? LastModificationTime { get; set; }
-
-
-        // EF Core requires public parameterless constructor
-        public UserProfile() { }
-
-
-        // Constructor for creating user manually
-        public UserProfile(string mobileNumber, string preferredLanguage = "en")
+        public class UserProfile
         {
-            UserProfileId = Guid.NewGuid();
+            public Guid UserProfileId { get; set; }
 
-            ValidateMobileNumber(mobileNumber);
-            MobileNumber = mobileNumber;
+            public string MobileNumber { get; set; } = default!;
 
-            SetPreferredLanguage(preferredLanguage);
+            public string PreferredLanguage { get; set; } = "en";
 
-            IsVerified = false;
-            CreationTime = DateTime.UtcNow;
-        }
+            public bool IsVerified { get; set; }
 
+            public DateTime? LastLoginAt { get; set; }
 
-        // --------------------------
-        // Helpers
-        // --------------------------
-        private void ValidateMobileNumber(string number)
-        {
-            if (string.IsNullOrWhiteSpace(number))
-                throw new ArgumentException("Mobile number cannot be empty.");
-
-            if (number.Length != 10 || !long.TryParse(number, out _))
-                throw new ArgumentException("Mobile number must be a 10-digit numeric value.");
-        }
-
-        private void TouchModified()
-        {
-            LastModificationTime = DateTime.UtcNow;
-        }
+            public DateTime CreationTime { get; set; }
+            public DateTime? LastModificationTime { get; set; }
 
 
-        // --------------------------
-        // Domain Methods
-        // --------------------------
+            // EF Core requires public parameterless constructor
+            public UserProfile() { }
 
-        // Rename to match AuthService usage
-        public void Verify()
-        {
-            IsVerified = true;
-            TouchModified();
-        }
 
-        public void UpdateMobileNumber(string newNumber)
-        {
-            ValidateMobileNumber(newNumber);
+            // Constructor for creating user manually
+            public UserProfile(string mobileNumber, string preferredLanguage = "en")
+            {
+                UserProfileId = Guid.NewGuid();
 
-            if (newNumber == MobileNumber)
-                throw new ArgumentException("New mobile number cannot match the old number.");
+                ValidateMobileNumber(mobileNumber);
+                MobileNumber = mobileNumber;
 
-            MobileNumber = newNumber;
-            IsVerified = false;
-            TouchModified();
-        }
+                SetPreferredLanguage(preferredLanguage);
 
-        public void UpdateLastLogin()
-        {
-            LastLoginAt = DateTime.UtcNow;
-            TouchModified();
-        }
+                IsVerified = false;
+                CreationTime = DateTime.UtcNow;
+            }
 
-        public void SetPreferredLanguage(string lang)
-        {
-            if (string.IsNullOrWhiteSpace(lang))
-                throw new ArgumentException("Preferred language cannot be empty.");
 
-            PreferredLanguage = lang;
-            TouchModified();
+            // --------------------------
+            // Helpers
+            // --------------------------
+            private void ValidateMobileNumber(string number)
+            {
+                if (string.IsNullOrWhiteSpace(number))
+                    throw new ArgumentException("Mobile number cannot be empty.");
+
+                if (number.Length != 10 || !long.TryParse(number, out _))
+                    throw new ArgumentException("Mobile number must be a 10-digit numeric value.");
+            }
+
+            private void TouchModified()
+            {
+                LastModificationTime = DateTime.UtcNow;
+            }
+
+
+            // --------------------------
+            // Domain Methods
+            // --------------------------
+
+            // Rename to match AuthService usage
+            public void Verify()
+            {
+                IsVerified = true;
+                TouchModified();
+            }
+
+            public void UpdateMobileNumber(string newNumber)
+            {
+                ValidateMobileNumber(newNumber);
+
+                if (newNumber == MobileNumber)
+                    throw new ArgumentException("New mobile number cannot match the old number.");
+
+                MobileNumber = newNumber;
+                IsVerified = false;
+                TouchModified();
+            }
+
+            public void UpdateLastLogin()
+            {
+                LastLoginAt = DateTime.UtcNow;
+                TouchModified();
+            }
+
+            public void SetPreferredLanguage(string lang)
+            {
+                if (string.IsNullOrWhiteSpace(lang))
+                    throw new ArgumentException("Preferred language cannot be empty.");
+
+                PreferredLanguage = lang;
+                TouchModified();
+            }
         }
     }
-}

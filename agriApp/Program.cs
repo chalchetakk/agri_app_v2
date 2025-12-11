@@ -12,6 +12,7 @@ using agriApp.Services.Lots;
 using agriApp.Services.Files;
 using agriApp.Services.Auctions;
 using agriApp.Services.Anchors;
+using agriApp.Services.BulkImport;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -148,6 +149,22 @@ builder.Services.AddScoped<IPreRegisteredLotQueryService, PreRegisteredLotQueryS
 
 builder.Services.AddScoped<IArrivedLotQueryService, ArrivedLotQueryService>();
 builder.Services.AddScoped<IAnchorService, AnchorService>();
+
+// -------------------------------------------------------------
+// ANCHOR SERVICES — Dependency Injection
+// -------------------------------------------------------------
+
+// Crop lookup (string → CropId)
+builder.Services.AddScoped<ICropLookupService, CropLookupService>();
+
+// Bulk parsing services (CSV + Excel)
+builder.Services.AddScoped<IBulkFileParserService, BulkFileParserService>();
+
+// Bulk validation services
+builder.Services.AddScoped<IBulkFarmerValidationService, BulkFarmerValidationService>();
+
+// Anchor farmer management service (single + bulk)
+builder.Services.AddScoped<IAnchorFarmerService, AnchorFarmerService>();
 // ----------------------------------------
 // 5️⃣ Build app
 // ----------------------------------------

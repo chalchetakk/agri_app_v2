@@ -43,6 +43,8 @@ public DbSet<BuyerInterestLot> BuyerInterestLots { get; set; }
 public DbSet<Auction> Auctions { get; set; }
 public DbSet<Anchor> Anchors { get; set; }
 
+public DbSet<AnchorFarmer> AnchorFarmers { get; set; }
+
         // ---------------------------
         // Model configuration loader
         // ---------------------------
