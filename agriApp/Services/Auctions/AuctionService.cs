@@ -101,13 +101,20 @@ namespace agriApp.Services.Auctions
         // ------------------------------------------------------------
         // 3) GET ALL AUCTIONS FOR A MANDI
         // ------------------------------------------------------------
-        public async Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId)
+        public async Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId, Guid ? officerId = null)
         {
-            return await _db.Auctions
+            var query =  _db.Auctions
                 .Include(a => a.Crop)
                 .Include(a => a.Mandi)
                 .Include(a => a.AssignedOfficer)
-                .Where(a => a.MandiId == mandiId)
+                .Where(a => a.MandiId == mandiId);
+                // ⭐ Apply officer filtering only when officerId is provided
+    if (officerId.HasValue)
+    {
+        query = query.Where(a => a.AssignedOfficerId == officerId.Value);
+    }
+
+    return await query
                 .OrderByDescending(a => a.ScheduledAt)
                 .Select(a => new AuctionListItemDto
                 {

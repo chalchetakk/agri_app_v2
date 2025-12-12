@@ -104,7 +104,7 @@ namespace agriApp.Services.MandiOfficials
 public async Task<List<MandiOfficerListDto>> GetOfficersByMandiIdAsync(int mandiId)
 {
     return await _db.MandiOfficials
-        .Where(x => x.MandiId == mandiId)
+        .Where(x => x.MandiId == mandiId && x.Role.RoleCode == "OFFICER")
         .Include(x => x.Role)
         .Select(x => new MandiOfficerListDto
         {

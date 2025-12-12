@@ -96,7 +96,16 @@ public MandiOfficialAuctionController(
         [HttpGet("mandi/auction/all")]
         public async Task<IActionResult> GetAuctions([FromQuery] int mandiId)
         {
-            var auctions = await _auctionService.GetAuctionsForMandiAsync(mandiId);
+            var role = User.GetOfficialRole();
+
+    Guid? officerFilter = null;
+
+    if (role == "OFFICER")
+    {
+        officerFilter = User.GetOfficialId(); // only see assigned auctions
+    }
+
+            var auctions = await _auctionService.GetAuctionsForMandiAsync(mandiId, officerFilter);
             return Ok(auctions);
         }
 

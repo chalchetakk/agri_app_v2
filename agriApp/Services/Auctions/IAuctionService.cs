@@ -11,7 +11,7 @@ namespace agriApp.Services.Auctions
     {
         Task<Auction> CreateAuctionAsync(CreateAuctionRequest dto);
 Task<Auction> EditAuctionAsync(Guid auctionId, EditAuctionRequest dto);
-Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId);
+Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId , Guid? officerId=null);
 Task<AuctionDetailDto?> GetAuctionByIdAsync(Guid auctionId);
 Task<Auction> StartAuctionAsync(Guid auctionId, Guid officerId);
 Task<Auction> EndAuctionAsync(Guid auctionId, Guid officerId);
