@@ -92,7 +92,7 @@ public MandiOfficialAuctionController(
         // ----------------------------------------------------------
         // LIST ALL AUCTIONS FOR A MANDI
         // ----------------------------------------------------------
-        [Authorize(Roles = "MANAGER,OFFICER")]
+        [Authorize(Roles = "MANAGER,OFFICER,APPROVER")]
         [HttpGet("mandi/auction/all")]
         public async Task<IActionResult> GetAuctions([FromQuery] int mandiId)
         {
