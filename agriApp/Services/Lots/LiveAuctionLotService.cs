@@ -46,7 +46,6 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
     return lot.ToDto();
 }
 
-        // Mark SOLD (atomic update of 3 tables)
         public async Task<LiveAuctionLotDto?> MarkSoldAsync(
     int liveAuctionLotId,
     float finalPrice,
@@ -56,15 +55,30 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
 {
     using var tx = await _db.Database.BeginTransactionAsync();
 
-    var auction = await _db.LiveAuctionLots
+    // Load lot + preregistered data
+    var lot = await _db.LiveAuctionLots
         .Include(x => x.ArrivedLot)
             .ThenInclude(x => x.PreRegisteredLot)
         .FirstOrDefaultAsync(x => x.LiveAuctionLotId == liveAuctionLotId);
 
-    if (auction == null) return null;
-    if (auction.AuctionStatus != "pending")
+    if (lot == null)
+        throw new Exception("Live auction lot not found.");
+
+    // ⭐ NEW — Ensure parent auction has started
+    var parentAuction = await _db.Auctions
+        .FirstOrDefaultAsync(a => a.AuctionId == lot.AuctionId);
+
+    if (parentAuction == null)
+        throw new Exception("Auction not found for this lot.");
+
+    if (parentAuction.Status != "started")
+        throw new Exception("Cannot update lot status — auction has not started.");
+
+    // Existing: lot must be pending
+    if (lot.AuctionStatus != "pending")
         throw new Exception("Auction lot not pending.");
 
+    // Buyer validation
     if (buyerId == null && string.IsNullOrWhiteSpace(buyerName))
         throw new Exception("Buyer name is required for non-app buyer.");
 
@@ -72,35 +86,37 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
     {
         var buyer = await _db.Buyers
             .Include(b => b.User)
-            .FirstOrDefaultAsync(x => x.BuyerId == buyerId)
+            .FirstOrDefaultAsync(b => b.BuyerId == buyerId)
             ?? throw new Exception("Invalid buyerId.");
 
-        auction.BuyerId = buyerId;
-        auction.BuyerName = !string.IsNullOrWhiteSpace(buyer.BuyerName)
+        lot.BuyerId = buyerId;
+        lot.BuyerName = !string.IsNullOrWhiteSpace(buyer.BuyerName)
             ? buyer.BuyerName
             : buyer.User?.MobileNumber;
-        auction.BuyerMobile = buyer.User?.MobileNumber;
+        lot.BuyerMobile = buyer.User?.MobileNumber;
     }
     else
     {
-        auction.BuyerId = null;
-        auction.BuyerName = buyerName;
-        auction.BuyerMobile = buyerMobile;
+        lot.BuyerId = null;
+        lot.BuyerName = buyerName;
+        lot.BuyerMobile = buyerMobile;
     }
 
-    auction.FinalPrice = finalPrice;
-    auction.AuctionStatus = "sold";
-    auction.UpdatedAt = DateTime.UtcNow;
+    // Update lot
+    lot.FinalPrice = finalPrice;
+    lot.AuctionStatus = "sold";
+    lot.UpdatedAt = DateTime.UtcNow;
 
-    _db.LiveAuctionLots.Update(auction);
+    _db.LiveAuctionLots.Update(lot);
 
-    // ArrivedLot update
-    var arrived = auction.ArrivedLot!;
+    // Update ArrivedLot
+    var arrived = lot.ArrivedLot!;
     arrived.Status = "sold";
     arrived.UpdatedAt = DateTime.UtcNow;
+
     _db.ArrivedLots.Update(arrived);
 
-    // PreLot update
+    // Update PreRegisteredLot
     if (arrived.PreRegisteredLot != null)
     {
         arrived.PreRegisteredLot.Status = "sold";
@@ -113,38 +129,53 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
     await _db.SaveChangesAsync();
     await tx.CommitAsync();
 
-    return auction.ToDto();
+    return lot.ToDto();
 }
-
-        // Mark UNSOLD
-        public async Task<LiveAuctionLotDto?> MarkUnsoldAsync(int liveAuctionLotId)
+public async Task<LiveAuctionLotDto?> MarkUnsoldAsync(int liveAuctionLotId)
 {
     using var tx = await _db.Database.BeginTransactionAsync();
 
-    var auction = await _db.LiveAuctionLots
+    // Load lot + preregistered data
+    var lot = await _db.LiveAuctionLots
         .Include(x => x.ArrivedLot)
             .ThenInclude(x => x.PreRegisteredLot)
         .FirstOrDefaultAsync(x => x.LiveAuctionLotId == liveAuctionLotId);
 
-    if (auction == null) return null;
-    if (auction.AuctionStatus != "pending")
+    if (lot == null)
+        throw new Exception("Live auction lot not found.");
+
+    // ⭐ NEW — Ensure parent auction has started
+    var parentAuction = await _db.Auctions
+        .FirstOrDefaultAsync(a => a.AuctionId == lot.AuctionId);
+
+    if (parentAuction == null)
+        throw new Exception("Auction not found for this lot.");
+
+    if (parentAuction.Status != "started")
+        throw new Exception("Cannot update lot status — auction has not started.");
+
+    // Ensure pending
+    if (lot.AuctionStatus != "pending")
         throw new Exception("Auction lot not pending.");
 
-    auction.AuctionStatus = "unsold";
-    auction.FinalPrice = null;
-    auction.BuyerId = null;
-    auction.BuyerName = null;
-    auction.BuyerMobile = null;
-    auction.UpdatedAt = DateTime.UtcNow;
+    // Update lot
+    lot.AuctionStatus = "unsold";
+    lot.FinalPrice = null;
+    lot.BuyerId = null;
+    lot.BuyerName = null;
+    lot.BuyerMobile = null;
+    lot.UpdatedAt = DateTime.UtcNow;
 
-    _db.LiveAuctionLots.Update(auction);
+    _db.LiveAuctionLots.Update(lot);
 
-    var arrived = auction.ArrivedLot!;
+    // Update ArrivedLot
+    var arrived = lot.ArrivedLot!;
     arrived.Status = "unsold";
     arrived.UpdatedAt = DateTime.UtcNow;
 
     _db.ArrivedLots.Update(arrived);
 
+    // Update PreRegisteredLot
     if (arrived.PreRegisteredLot != null)
     {
         arrived.PreRegisteredLot.Status = "unsold";
@@ -157,7 +188,7 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
     await _db.SaveChangesAsync();
     await tx.CommitAsync();
 
-    return auction.ToDto();
+    return lot.ToDto();
 }
 
     }

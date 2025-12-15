@@ -113,7 +113,7 @@ public async Task<IActionResult> CreateArrivedLot([FromBody] ArrivedLotCreateDto
 // ----------------------------------------------------
 // 3. Create ArrivedLot from preLotId
 // ----------------------------------------------------
-[HttpPost("arrived/from-prelot")]
+[HttpGet("arrived/from-prelot")]
 public async Task<IActionResult> CreateFromPreLot([FromQuery] string preLotId)
 {
     // ✔ Fetch mandi official entry

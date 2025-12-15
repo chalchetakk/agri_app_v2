@@ -14,7 +14,7 @@ Task<Auction> EditAuctionAsync(Guid auctionId, EditAuctionRequest dto);
 Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId , Guid? officerId=null);
 Task<AuctionDetailDto?> GetAuctionByIdAsync(Guid auctionId);
 Task<Auction> StartAuctionAsync(Guid auctionId, Guid officerId);
-Task<Auction> EndAuctionAsync(Guid auctionId, Guid officerId);
+Task<AuctionDetailDto> EndAuctionAsync(Guid auctionId, Guid officerId);
 Task<List<LiveAuctionLot>> GetLiveLotsForAuctionAsync(Guid auctionId);
 
     }

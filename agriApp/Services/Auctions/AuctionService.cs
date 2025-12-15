@@ -6,6 +6,7 @@ using agriApp.Data;
 using agriApp.Dtos.Auctions;
 using agriApp.Entities.Auctions;
 using agriApp.Entities.Lots;
+using agriApp.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace agriApp.Services.Auctions
@@ -190,14 +191,15 @@ namespace agriApp.Services.Auctions
         // ------------------------------------------------------------
         // 6) END AUCTION (Officer) + AUTO-MARK UNSOLD
         // ------------------------------------------------------------
-        public async Task<Auction> EndAuctionAsync(Guid auctionId, Guid officerId)
+        public async Task<AuctionDetailDto> EndAuctionAsync(Guid auctionId, Guid officerId)
 {
-    // Step 1: Load auction safely (same method as StartAuction)
-    var auction = await _db.Auctions.FindAsync(auctionId)
+    var auction = await _db.Auctions
+        .Include(a => a.Mandi)
+        .Include(a => a.Crop)
+        .Include(a => a.AssignedOfficer)
+        .Include(a => a.CreatedByOfficial)
+        .FirstOrDefaultAsync(a => a.AuctionId == auctionId)
         ?? throw new Exception("Auction not found.");
-// Console.WriteLine("AssignedOfficerId: " + auction.AssignedOfficerId);
-// Console.WriteLine("OfficerId received: " + officerId);
-
 
     if (auction.AssignedOfficerId != officerId)
         throw new Exception("You are not assigned to this auction.");
@@ -205,16 +207,13 @@ namespace agriApp.Services.Auctions
     if (auction.Status != "started")
         throw new Exception("Auction must be in 'started' state to end.");
 
-    // Step 2: Load LiveAuctionLots separately (as they are not navigation-loaded by FindAsync)
     var liveLots = await _db.LiveAuctionLots
         .Where(x => x.AuctionId == auctionId)
         .ToListAsync();
 
-    // Step 3: Mark auction as ended
     auction.Status = "ended";
     auction.UpdatedAt = DateTime.UtcNow;
 
-    // Step 4: Auto mark unsold lots
     foreach (var lot in liveLots)
     {
         if (lot.AuctionStatus == "pending")
@@ -222,7 +221,6 @@ namespace agriApp.Services.Auctions
             lot.AuctionStatus = "unsold";
             lot.UpdatedAt = DateTime.UtcNow;
 
-            // Update ArrivedLot & PreRegisteredLot
             var arrived = await _db.ArrivedLots
                 .Include(a => a.PreRegisteredLot)
                 .FirstOrDefaultAsync(a => a.ArrivedLotId == lot.ArrivedLotId);
@@ -239,8 +237,11 @@ namespace agriApp.Services.Auctions
     }
 
     await _db.SaveChangesAsync();
-    return auction;
+
+    // 💡 return DTO instead of EF entity
+    return auction.ToDetailDto(liveLots);
 }
+
 
         // ------------------------------------------------------------
         // 7) GET LIVE LOTS FOR AUCTION
