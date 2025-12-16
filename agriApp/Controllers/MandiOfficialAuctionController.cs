@@ -6,6 +6,7 @@ using agriApp.Services.MandiOfficials;
 using agriApp.Dtos.Auctions;
 using agriApp.DTOs.MandiOfficials;
 using agriApp.Extensions; // for User.GetUserId()
+using agriApp.Services.Buyers;
 using System;
 using System.Threading.Tasks;
 using agriApp.Dtos.Lots;
@@ -24,13 +25,15 @@ private readonly IArrivedLotQueryService _arrivedLotQuery;
 private readonly ILiveAuctionLotService _liveAuctionLotService;
 
 private readonly IMandiOfficialService _mandiOfficialService;
+ private readonly IBuyerSearchService _buyerSearchService;
 public MandiOfficialAuctionController(
             IAuctionService auctionService, 
             IArrivedLotService arrivedLotService,
             IPreRegisteredLotQueryService preLotQuery,
             IArrivedLotQueryService arrivedLotQuery,
             ILiveAuctionLotService liveAuctionLotService,
-            IMandiOfficialService mandiOfficialService)
+            IMandiOfficialService mandiOfficialService,
+            IBuyerSearchService buyerSearchService)
         {
             _auctionService = auctionService;
             _arrivedLotService = arrivedLotService;
@@ -38,6 +41,7 @@ public MandiOfficialAuctionController(
             _arrivedLotQuery = arrivedLotQuery;
             _liveAuctionLotService = liveAuctionLotService;
             _mandiOfficialService = mandiOfficialService;
+            _buyerSearchService = buyerSearchService;
         }
 
         // ----------------------------------------------------------
@@ -160,6 +164,16 @@ public MandiOfficialAuctionController(
     return Ok(result);
         }
 
+[Authorize(Roles = "OFFICER")]
+[HttpGet("buyers/search")]
+    public async Task<IActionResult> SearchBuyers([FromQuery] string query)
+    {
+        if (string.IsNullOrWhiteSpace(query) || query.Length < 3)
+            return BadRequest("Enter at least 3 characters");
+
+        var result = await _buyerSearchService.SearchBuyersAsync(query);
+        return Ok(result);
+    }
         // ----------------------------------------------------------
         // UPDATE LIVE LOT STATUS (sold / unsold)
         // ----------------------------------------------------------

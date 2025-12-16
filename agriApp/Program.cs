@@ -165,6 +165,9 @@ builder.Services.AddScoped<IBulkFarmerValidationService, BulkFarmerValidationSer
 
 // Anchor farmer management service (single + bulk)
 builder.Services.AddScoped<IAnchorFarmerService, AnchorFarmerService>();
+
+builder.Services.AddScoped<IBuyerSearchService, BuyerSearchService>();
+
 // ----------------------------------------
 // 5️⃣ Build app
 // ----------------------------------------
