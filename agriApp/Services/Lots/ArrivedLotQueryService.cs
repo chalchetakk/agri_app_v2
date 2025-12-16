@@ -34,6 +34,10 @@ namespace agriApp.Services.Lots
                     Status = a.Status,
                     Quantity = a.Quantity,
                     Grade = a.Grade,
+                    // ✅ ADD THESE THREE
+        LotOwnerName = a.LotOwnerName,
+        MobileNum = a.MobileNum,
+        LotOwnerRole = a.LotOwnerRole,
                     LotImageUrl = a.LotImageUrl,
                     QrCodeUrl = a.QrCodeUrl,
                     CreatedAt = a.CreatedAt
@@ -63,6 +67,10 @@ namespace agriApp.Services.Lots
                 Status = arrived.Status,
                 Quantity = arrived.Quantity,
                 Grade = arrived.Grade,
+                // ✅ ADD THESE THREE
+        LotOwnerName = arrived.LotOwnerName,
+        MobileNum = arrived.MobileNum,
+        LotOwnerRole = arrived.LotOwnerRole,
                 LotImageUrl = arrived.LotImageUrl,
                 QrCodeUrl = arrived.QrCodeUrl,
                 ExpectedArrivalDate = arrived.PreRegisteredLot?.ExpectedArrivalDate,

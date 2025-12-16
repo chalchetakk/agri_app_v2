@@ -15,7 +15,10 @@ namespace agriApp.Dtos.Lots
 
         public float Quantity { get; set; }
         public string? Grade { get; set; }
-
+// 👤 Lot owner snapshot (NEW)
+        public string LotOwnerName { get; set; } = default!;
+        public string MobileNum { get; set; } = default!;
+        public string LotOwnerRole { get; set; } = default!; // FARMER / SELLER
         public string? LotImageUrl { get; set; }
         public string? QrCodeUrl { get; set; }
 
