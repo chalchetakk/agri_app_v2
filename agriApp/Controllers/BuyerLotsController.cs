@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using agriApp.Services.Lots;
+using agriApp.DTOs.Lots;
 
 namespace agriApp.Controllers
 {
@@ -57,6 +58,18 @@ namespace agriApp.Controllers
             var result = await _buyerService.GetMyPlacedBidsAsync(GetUserId());
             return Ok(result);
         }
+
+// 5️⃣ Buyer sees details of a specific bid
+[HttpGet("bids/{buyerInterestLotId}")]
+public async Task<IActionResult> GetMyBidDetail(int buyerInterestLotId)
+{
+    var result = await _buyerService.GetMyBidDetailAsync(
+        buyerInterestLotId,
+        GetUserId());
+
+    return result == null ? NotFound() : Ok(result);
+}
+
 
         // DTOs inside controller
         public class PlaceBidDto

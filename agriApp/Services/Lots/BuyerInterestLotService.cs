@@ -3,6 +3,7 @@ using agriApp.Data;
 using agriApp.Controllers;
 using agriApp.Entities.Lots;
 using agriApp.Entities.Stakeholders;
+using agriApp.Dtos.Lots;
 
 namespace agriApp.Services.Lots
 {
@@ -159,5 +160,54 @@ namespace agriApp.Services.Lots
                 CreatedAt = b.CreatedAt
             }).ToList();
         }
+        public async Task<BuyerBidDetailDto?> GetMyBidDetailAsync(
+    int buyerInterestLotId,
+    Guid buyerUserId)
+{
+    // Resolve buyer
+    var buyer = await _db.Buyers
+        .AsNoTracking()
+        .FirstOrDefaultAsync(b => b.UserId == buyerUserId);
+
+    if (buyer == null)
+        return null;
+
+    // Load bid + lot
+    var bid = await _db.BuyerInterestLots
+        .Include(b => b.PreRegisteredLot)
+            .ThenInclude(p => p!.Crop)
+        .Include(b => b.PreRegisteredLot)
+            .ThenInclude(p => p!.Mandi)
+        .FirstOrDefaultAsync(b =>
+            b.BuyerInterestLotId == buyerInterestLotId &&
+            b.BuyerId == buyer.BuyerId);
+
+    if (bid == null || bid.PreRegisteredLot == null)
+        return null;
+
+    var lot = bid.PreRegisteredLot;
+
+    return new BuyerBidDetailDto
+    {
+        BuyerInterestLotId = bid.BuyerInterestLotId,
+        PreLotId = lot.PreLotId,
+
+        CropName = lot.Crop?.CropName ?? "",
+        Quantity = lot.Quantity,
+        Grade = lot.Grade,
+        LotImageUrl = lot.LotImageUrl,
+        QrCodeUrl = lot.QrCodeUrl,
+        LotStatus = lot.Status,
+
+        MandiId = lot.MandiId,
+        MandiName = lot.Mandi?.MandiName ?? "",
+        ExpectedArrivalDate = lot.ExpectedArrivalDate,
+
+        BidAmount = bid.BuyerBidAmount,
+        BidStatus = bid.Status,
+        BidCreatedAt = bid.CreatedAt
+    };
+}
+
     }
 }
