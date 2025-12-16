@@ -85,6 +85,87 @@ public async Task<IActionResult> GetMyAuctionLot(int arrivedLotId)
     return result == null ? NotFound() : Ok(result);
 }
 
+// ------------------------------
+//        BIDS MANAGEMENT
+// ------------------------------
+
+[HttpGet("{preLotId}/bids")]
+public async Task<IActionResult> GetBidsForLot(string preLotId)
+{
+    var result = await _lotService.GetBidsForLotAsync(
+        preLotId,
+        GetUserId(),
+        isFarmer: false
+    );
+
+    return Ok(result);
+}
+
+[HttpPost("{preLotId}/bids/{buyerInterestLotId}/accept")]
+public async Task<IActionResult> AcceptBid(string preLotId, int buyerInterestLotId)
+{
+    var success = await _lotService.AcceptBidAsync(
+        preLotId,
+        buyerInterestLotId,
+        GetUserId(),
+        isFarmer: false
+    );
+
+    if (!success)
+        return BadRequest(new { message = "Unable to accept bid." });
+
+    return Ok(new { message = "Bid accepted successfully." });
+}
+
+[HttpPost("{preLotId}/bids/{buyerInterestLotId}/reject")]
+public async Task<IActionResult> RejectBid(string preLotId, int buyerInterestLotId)
+{
+    var success = await _lotService.RejectBidAsync(
+        preLotId,
+        buyerInterestLotId,
+        GetUserId(),
+        isFarmer: false
+    );
+
+    if (!success)
+        return BadRequest(new { message = "Unable to reject bid." });
+
+    return Ok(new { message = "Bid rejected successfully." });
+}
+
+[HttpGet("bids")]
+public async Task<IActionResult> GetAllReceivedBids()
+{
+    var result = await _lotService.GetAllReceivedBidsAsync(
+        GetUserId(),
+        isFarmer: false
+    );
+
+    return Ok(result);
+}
+
+public class BidListItemDto
+{
+    public int BuyerInterestLotId { get; set; }
+    public string BuyerName { get; set; } = default!;
+    public string BuyerMobile { get; set; } = default!;
+    public float BidAmount { get; set; }
+    public string Status { get; set; } = default!; // pending/accepted/rejected
+    public DateTime CreatedAt { get; set; }
+}
+
+public class ReceivedBidListItemDto
+{
+    public string PreLotId { get; set; } = default!;
+    public int BuyerInterestLotId { get; set; }
+    public float BidAmount { get; set; }
+    public string Status { get; set; } = default!;
+    public string BuyerName { get; set; } = default!;
+    public string BuyerMobile { get; set; } = default!;
+    public string CropName { get; set; } = default!;
+    public string MandiName { get; set; } = default!;
+    public DateTime CreatedAt { get; set; }
+}
 
     }
 }
