@@ -26,6 +26,11 @@ namespace agriApp.Services.Lots
             return await _db.PreRegisteredLots
                 .Include(l => l.Crop)
                 .Include(l => l.Mandi)
+                .Include(l => l.Farmer)
+    .ThenInclude(f => f.User)
+.Include(l => l.Seller)
+    .ThenInclude(s => s.User)
+
                 .Where(l => l.MandiId == mandiId)
                 .OrderByDescending(l => l.CreatedAt)
                 .Select(l => new PreRegisteredLotListItemDto
@@ -33,6 +38,14 @@ namespace agriApp.Services.Lots
                     PreLotId = l.PreLotId,
                     CropId = l.CropId,
                     CropName = l.Crop!.CropName,
+                    LotOwnerRole = l.FarmerId != null ? "FARMER" : "SELLER",
+LotOwnerName = l.FarmerId != null
+    ? l.Farmer!.FarmerName
+    : l.Seller!.SellerName,
+MobileNum = l.FarmerId != null
+    ? l.Farmer!.User!.MobileNumber
+    : l.Seller!.User!.MobileNumber,
+
                     MandiId = l.MandiId,
                     MandiName = l.Mandi!.MandiName,
                     Status = l.Status,
@@ -52,9 +65,31 @@ namespace agriApp.Services.Lots
             var lot = await _db.PreRegisteredLots
                 .Include(l => l.Crop)
                 .Include(l => l.Mandi)
+                .Include(l => l.Farmer)
+                .ThenInclude(f => f.User)
+                .Include(l => l.Seller)
+                .ThenInclude(s => s.User)   
                 .FirstOrDefaultAsync(l => l.PreLotId == preLotId);
 
             if (lot == null) return null;
+string ownerRole = "";
+Guid ownerId = Guid.Empty;
+string ownerName = "";
+string mobile = "";
+if (lot.FarmerId != null && lot.Farmer != null)
+{
+    ownerRole = "FARMER";
+    ownerId = lot.Farmer.FarmerId;
+    ownerName = lot.Farmer.FarmerName;
+    mobile = lot.Farmer.User?.MobileNumber ?? "";
+}
+else if (lot.SellerId != null && lot.Seller != null)
+{
+    ownerRole = "SELLER";
+    ownerId = lot.Seller.SellerId;
+    ownerName = lot.Seller.SellerName;
+    mobile = lot.Seller.User?.MobileNumber ?? "";
+}
 
             return new PreRegisteredLotDetailDto
             {
@@ -62,6 +97,12 @@ namespace agriApp.Services.Lots
                 Status = lot.Status,
                 CropId = lot.CropId,
                 CropName = lot.Crop!.CropName,
+
+                LotOwnerRole = ownerRole,
+LotOwnerId = ownerId,
+LotOwnerName = ownerName,
+MobileNum = mobile,
+
                 MandiId = lot.MandiId,
                 MandiName = lot.Mandi!.MandiName,
                 Quantity = lot.Quantity,

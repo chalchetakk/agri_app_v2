@@ -8,6 +8,9 @@ namespace agriApp.Dtos.Lots
         public int MandiId { get; set; }
         public string MandiName { get; set; } = default!;
         public string Status { get; set; } = default!;
+public string LotOwnerRole { get; set; } = "";   // FARMER / SELLER
+public string LotOwnerName { get; set; } = "";
+public string MobileNum { get; set; } = "";
 
         public float Quantity { get; set; }
         public string Grade { get; set; } = default!;
