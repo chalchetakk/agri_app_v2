@@ -203,6 +203,8 @@ namespace agriApp.Services.Anchors
             var farmers = await _db.AnchorFarmers
                 .Where(a => a.AnchorId == anchorId)
                 .Include(a => a.Farmer)
+                 .ThenInclude(f => f!.User)     // ✅ ADD THIS
+    .Include(a => a.Farmer!.FarmDetails) // ✅ ensure farms are loaded
                 .Select(a => a.Farmer!)
                 .ToListAsync();
 
@@ -221,6 +223,7 @@ namespace agriApp.Services.Anchors
                 {
                     FarmerId = f.FarmerId,
                     FarmerName = f.FarmerName,
+                    MobileNumber = f.User?.MobileNumber ?? "",   // ✅ ADD THIS
                     Location = f.Location,
                     TotalFarms = f.FarmDetails.Count,
                     InterestedCrops = cropNames
@@ -242,6 +245,7 @@ namespace agriApp.Services.Anchors
                 throw new Exception("This farmer does not belong to your anchor.");
 
             var farmer = await _db.Farmers
+             .Include(f => f.User)                // ✅ ADD THIS
                 .Include(f => f.FarmDetails)
                 .Include(f => f.InterestedCrops)
                 .FirstAsync(f => f.FarmerId == farmerId);
@@ -254,6 +258,7 @@ namespace agriApp.Services.Anchors
             {
                 FarmerId = farmer.FarmerId,
                 FarmerName = farmer.FarmerName,
+                MobileNumber = farmer.User?.MobileNumber ?? "", // ✅ ADD THIS
                 Location = farmer.Location,
                 ProfilePhotoUrl = farmer.ProfilePhotoUrl,
                 InterestedCrops = cropNames,
