@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using agriApp.Entities.Auctions;
 using agriApp.Entities.Lots;
 using agriApp.Dtos.Auctions;
+using agriApp.Dtos.Lots;
 
 namespace agriApp.Services.Auctions
 {
@@ -15,7 +16,7 @@ Task<List<AuctionListItemDto>> GetAuctionsForMandiAsync(int mandiId , Guid? offi
 Task<AuctionDetailDto?> GetAuctionByIdAsync(Guid auctionId);
 Task<Auction> StartAuctionAsync(Guid auctionId, Guid officerId);
 Task<AuctionDetailDto> EndAuctionAsync(Guid auctionId, Guid officerId);
-Task<List<LiveAuctionLot>> GetLiveLotsForAuctionAsync(Guid auctionId);
+Task<List<LiveAuctionLotDto>> GetLiveLotsForAuctionAsync(Guid auctionId);
 
     }
 }

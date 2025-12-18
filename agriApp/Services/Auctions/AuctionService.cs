@@ -8,6 +8,7 @@ using agriApp.Entities.Auctions;
 using agriApp.Entities.Lots;
 using agriApp.Extensions;
 using Microsoft.EntityFrameworkCore;
+using agriApp.Dtos.Lots;
 
 namespace agriApp.Services.Auctions
 {
@@ -246,12 +247,21 @@ namespace agriApp.Services.Auctions
         // ------------------------------------------------------------
         // 7) GET LIVE LOTS FOR AUCTION
         // ------------------------------------------------------------
-        public async Task<List<LiveAuctionLot>> GetLiveLotsForAuctionAsync(Guid auctionId)
-        {
-            return await _db.LiveAuctionLots
-                .Where(l => l.AuctionId == auctionId)
-                .OrderBy(l => l.CreatedAt)
-                .ToListAsync();
-        }
+        public async Task<List<LiveAuctionLotDto>> GetLiveLotsForAuctionAsync(Guid auctionId)
+{
+    var lots = await _db.LiveAuctionLots
+        .Where(l => l.AuctionId == auctionId)
+        .Include(l => l.ArrivedLot)
+            .ThenInclude(a => a.Crop)
+        .Include(l => l.ArrivedLot)
+            .ThenInclude(a => a.PreRegisteredLot)
+        .OrderBy(l => l.CreatedAt)
+        .ToListAsync();
+
+    return lots
+        .Select(l => l.ToDto())
+        .ToList();
+}
+
     }
 }
