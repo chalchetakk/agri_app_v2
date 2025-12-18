@@ -1,6 +1,6 @@
 // agriApp/Services/Lots/ILotService.cs
 using agriApp.Dtos.Lots;
-
+using agriApp.Controllers;
 namespace agriApp.Services.Lots
 {
     public interface ILotService
@@ -32,7 +32,7 @@ Task<bool> AcceptBidAsync(string preLotId, int buyerInterestLotId, Guid userId, 
 Task<bool> RejectBidAsync(string preLotId, int buyerInterestLotId, Guid userId, bool isFarmer);
 
 // Get all bids received across all lots of farmer/seller
-Task<List<ReceivedBidListItemDto>> GetAllReceivedBidsAsync(Guid userId, bool isFarmer);
+Task<List<ReceivedLotBidsDto>> GetAllReceivedBidsAsync(Guid userId, bool isFarmer);
 
     }
 }

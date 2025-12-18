@@ -628,45 +628,51 @@ public async Task<bool> RejectBidAsync(string preLotId, int buyerInterestLotId, 
     await _db.SaveChangesAsync();
     return true;
 }
-public async Task<List<ReceivedBidListItemDto>> GetAllReceivedBidsAsync(Guid userId, bool isFarmer)
+public async Task<List<ReceivedLotBidsDto>> GetAllReceivedBidsAsync(Guid userId, bool isFarmer)
 {
-    Guid ownerId;
-
-    if (isFarmer)
-    {
-        ownerId = (await _db.Farmers.FirstAsync(f => f.UserId == userId)).FarmerId;
-    }
-    else
-    {
-        ownerId = (await _db.Sellers.FirstAsync(s => s.UserId == userId)).SellerId;
-    }
-
-    var lots = await _db.PreRegisteredLots
-        .Where(l => (isFarmer ? l.FarmerId : l.SellerId) == ownerId)
-        .Select(l => l.PreLotId)
-        .ToListAsync();
+    Guid ownerId = isFarmer
+        ? (await _db.Farmers.FirstAsync(f => f.UserId == userId)).FarmerId
+        : (await _db.Sellers.FirstAsync(s => s.UserId == userId)).SellerId;
 
     var bids = await _db.BuyerInterestLots
         .Include(b => b.Buyer).ThenInclude(u => u.User)
         .Include(b => b.PreRegisteredLot).ThenInclude(pl => pl.Crop)
         .Include(b => b.PreRegisteredLot).ThenInclude(pl => pl.Mandi)
-        .Where(b => lots.Contains(b.PreLotId))
+        .Where(b =>
+            isFarmer
+                ? b.PreRegisteredLot!.FarmerId == ownerId
+                : b.PreRegisteredLot!.SellerId == ownerId
+        )
         .OrderByDescending(b => b.CreatedAt)
         .ToListAsync();
 
-    return bids.Select(b => new ReceivedBidListItemDto
-    {
-        PreLotId = b.PreLotId,
-        BuyerInterestLotId = b.BuyerInterestLotId,
-        BidAmount = (float)b.BuyerBidAmount,
-        Status = b.Status,
-        BuyerName = b.Buyer.BuyerName,
-        BuyerMobile = b.Buyer.User?.MobileNumber ?? "",
-        CropName = b.PreRegisteredLot?.Crop?.CropName ?? "",
-        MandiName = b.PreRegisteredLot?.Mandi?.MandiName ?? "",
-        CreatedAt = b.CreatedAt
-    }).ToList();
+    var grouped = bids
+        .GroupBy(b => b.PreLotId)
+        .Select(g =>
+        {
+            var first = g.First();
+
+            return new ReceivedLotBidsDto
+            {
+                PreLotId = g.Key,
+                CropName = first.PreRegisteredLot?.Crop?.CropName ?? "",
+                MandiName = first.PreRegisteredLot?.Mandi?.MandiName ?? "",
+                Bids = g.Select(b => new BidListItemDto
+                {
+                    BuyerInterestLotId = b.BuyerInterestLotId,
+                    BuyerName = b.Buyer.BuyerName,
+                    BuyerMobile = b.Buyer.User?.MobileNumber ?? "",
+                    BidAmount = (float)b.BuyerBidAmount,
+                    Status = b.Status,
+                    CreatedAt = b.CreatedAt
+                }).ToList()
+            };
+        })
+        .ToList();
+
+    return grouped;
 }
+
 
 
     }
