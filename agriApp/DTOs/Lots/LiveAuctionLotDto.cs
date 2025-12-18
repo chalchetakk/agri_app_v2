@@ -11,6 +11,7 @@ namespace agriApp.Dtos.Lots
         public string? CropName { get; set; }
         public string? Grade { get; set; }
         public float Quantity { get; set; }
+public float? FinalPrice { get; set; }
 
         public string? BuyerName { get; set; }
         public string? BuyerMobile { get; set; }
