@@ -657,6 +657,10 @@ public async Task<List<ReceivedLotBidsDto>> GetAllReceivedBidsAsync(Guid userId,
                 PreLotId = g.Key,
                 CropName = first.PreRegisteredLot?.Crop?.CropName ?? "",
                 MandiName = first.PreRegisteredLot?.Mandi?.MandiName ?? "",
+                Quantity = first.PreRegisteredLot?.Quantity ?? 0,
+    Grade = first.PreRegisteredLot?.Grade,
+    ExpectedArrivalDate = first.PreRegisteredLot?.ExpectedArrivalDate ?? default,
+    ExpectedAmount = first.PreRegisteredLot?.SellingAmount,
                 Bids = g.Select(b => new BidListItemDto
                 {
                     BuyerInterestLotId = b.BuyerInterestLotId,
