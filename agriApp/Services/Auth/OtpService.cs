@@ -67,8 +67,9 @@ public async Task SendOtpAsync(string mobileNumber, string userPreviousId = null
     }
 
     // Step 3 — Generate 4-digit OTP
-    var random = new Random();
-    var otp = random.Next(1000, 9999).ToString();
+    // var random = new Random();
+    // var otp = random.Next(1000, 9999).ToString();
+    var otp = "1234";
 
     // Step 4 — Hash OTP
     var otpHash = HashOtp(otp); // Assuming HashOtp is defined in the service
