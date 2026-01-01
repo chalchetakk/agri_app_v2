@@ -16,10 +16,18 @@ namespace agriApp.Controllers
             _mandiService = mandiService;
         }
 
+        // [HttpGet]
+        // public async Task<IActionResult> GetMandis()
+        // {
+        //     var list = await _mandiService.GetMandisAsync();
+        //     return Ok(list);
+        // }
+         // ✅ GET /mandis
+        // ✅ GET /mandis?district=Pune
         [HttpGet]
-        public async Task<IActionResult> GetMandis()
+        public async Task<IActionResult> GetMandis([FromQuery] string? district)
         {
-            var list = await _mandiService.GetMandisAsync();
+            var list = await _mandiService.GetMandisAsync(district);
             return Ok(list);
         }
     }
@@ -28,6 +36,8 @@ namespace agriApp.Controllers
     public int MandiId { get; set; }
     public string MandiName { get; set; } = default!;
     public string Location { get; set; } = default!;
+
+    public string District { get; set; } = default!;
 }
 
 }
