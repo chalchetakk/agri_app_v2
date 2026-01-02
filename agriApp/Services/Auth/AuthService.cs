@@ -95,6 +95,7 @@ int? mandiId = official?.MandiId;
     {
         UserId = user.UserProfileId,
         MobileNumber = user.MobileNumber,
+        UserName = user.UserName,   // ⭐ ADD
         AccessToken = accessToken,
         RefreshToken = refreshToken,
         ExpiresIn = jwt.ValidTo,
@@ -108,6 +109,8 @@ int? mandiId = official?.MandiId;
     {
         public Guid UserId { get; set; }
         public string MobileNumber { get; set; }
+
+            public string UserName { get; set; }   // ⭐ ADD THIS
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime ExpiresIn { get; set; }

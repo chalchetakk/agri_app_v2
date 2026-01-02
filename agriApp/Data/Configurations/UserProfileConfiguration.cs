@@ -41,6 +41,9 @@ namespace agriApp.Data.Configurations
 
             // No extra relationships defined here
             // (OTP, JwtToken, LoginActivity configs will define their FK)
+
+            builder.Property(x => x.UserName)
+       .HasMaxLength(50);
         }
     }
 }

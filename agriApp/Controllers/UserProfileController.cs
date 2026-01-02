@@ -57,6 +57,7 @@ foreach (var c in User.Claims)
             {
                 userId = user.UserProfileId,
                 mobileNumber = user.MobileNumber,
+                userName = user.UserName,        // ⭐ ADD
                 preferredLanguage = user.PreferredLanguage,
                 isVerified = user.IsVerified,
                 lastLoginAt = user.LastLoginAt,
@@ -191,6 +192,24 @@ public async Task<IActionResult> GetRoleStatus()
         isAnchor = status.IsAnchor
     });
 }
+[HttpPut("update-name")]
+public async Task<IActionResult> UpdateUserName([FromBody] UpdateUserNameRequest request)
+{
+    if (string.IsNullOrWhiteSpace(request.UserName))
+        return BadRequest(new { message = "Name is required." });
+
+    var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+
+    var user = await _db.UserProfiles.FindAsync(userId);
+    if (user == null)
+        return NotFound();
+
+    user.SetUserName(request.UserName);
+
+    await _db.SaveChangesAsync();
+
+    return Ok(new { message = "Name updated successfully." });
+}
 
     }
 
@@ -227,4 +246,9 @@ public async Task<IActionResult> GetRoleStatus()
 
         public bool IsAnchor {get; set;}
     }
+    public class UpdateUserNameRequest
+{
+    public string UserName { get; set; }
+}
+
 }

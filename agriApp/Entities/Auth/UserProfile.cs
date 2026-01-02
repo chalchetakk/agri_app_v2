@@ -7,7 +7,7 @@
             public Guid UserProfileId { get; set; }
 
             public string MobileNumber { get; set; } = default!;
-
+  public string? UserName { get; private set; }   // ⭐ NEW
             public string PreferredLanguage { get; set; } = "en";
 
             public bool IsVerified { get; set; }
@@ -29,7 +29,7 @@
 
                 ValidateMobileNumber(mobileNumber);
                 MobileNumber = mobileNumber;
-
+UserName = mobileNumber; 
                 SetPreferredLanguage(preferredLanguage);
 
                 IsVerified = false;
@@ -92,5 +92,12 @@
                 PreferredLanguage = lang;
                 TouchModified();
             }
+            public void SetUserName(string name)
+    {
+        UserName = string.IsNullOrWhiteSpace(name)
+        ? MobileNumber
+        : name.Trim();
+        LastModificationTime = DateTime.UtcNow;
+    }
         }
     }
