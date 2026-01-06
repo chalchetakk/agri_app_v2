@@ -50,7 +50,8 @@ namespace agriApp.Services.Lots
         Status = l.Status,
         MandiName = l.Mandi?.MandiName ?? "",
         MandiId = l.MandiId,
-        ExpectedArrivalDate = l.ExpectedArrivalDate
+        ExpectedArrivalDate = l.ExpectedArrivalDate,
+        SellingAmount = l.SellingAmount
     }).ToList();
 }
 

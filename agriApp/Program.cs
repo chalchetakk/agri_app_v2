@@ -176,11 +176,11 @@ var app = builder.Build();
 // ----------------------------------------
 // 6️⃣ Swagger
 // ----------------------------------------
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+// }
 
 // ----------------------------------------
 // 7️⃣ Middleware pipeline

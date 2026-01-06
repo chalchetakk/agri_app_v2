@@ -20,7 +20,7 @@ namespace agriApp.Dtos.Lots
 
                 BuyerName = entity.BuyerName,
                 BuyerMobile = entity.BuyerMobile,
-
+        FinalPrice = entity.FinalPrice,
                 AuctionStatus = entity.AuctionStatus
             };
         }

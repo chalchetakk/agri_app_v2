@@ -102,7 +102,7 @@ public async Task<LiveAuctionLotDto?> GetByIdAsync(int liveLotId)
         lot.BuyerMobile = buyerMobile;
     }
 
-    // Update lot
+    // Update lot 
     lot.FinalPrice = finalPrice;
     lot.AuctionStatus = "sold";
     lot.UpdatedAt = DateTime.UtcNow;

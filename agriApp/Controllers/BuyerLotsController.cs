@@ -32,7 +32,7 @@ namespace agriApp.Controllers
         public async Task<IActionResult> GetAvailableLots()
         {
             var result = await _recommendationService.GetRecommendedLotsForBuyerAsync(GetUserId());
-            return Ok(result);
+            return Ok(result); 
         }
 
         // 2️⃣ Get lot details for buyer

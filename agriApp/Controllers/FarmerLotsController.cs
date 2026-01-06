@@ -68,7 +68,7 @@ public async Task<IActionResult> DeleteLot(string preLotId)
 }
 
 // FarmerLotsController.cs
-
+ 
 [HttpGet("auction/lots")]
 public async Task<IActionResult> GetMyAuctionLots()
 {

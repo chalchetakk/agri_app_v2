@@ -11,5 +11,7 @@ namespace agriApp.Dtos.Lots
         public string MandiName { get; set; } = default!;
         public int MandiId { get; set; }
         public DateTime ExpectedArrivalDate { get; set; }
+
+        public float? SellingAmount { get; set; } 
     }
 }
