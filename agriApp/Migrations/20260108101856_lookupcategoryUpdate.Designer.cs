@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agriApp.Data;
@@ -11,9 +12,11 @@ using agriApp.Data;
 namespace agriApp.Migrations
 {
     [DbContext(typeof(AgriDbContext))]
-    partial class AgriDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260108101856_lookupcategoryUpdate")]
+    partial class lookupcategoryUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -690,113 +693,49 @@ namespace agriApp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MandiId"));
 
-                    b.Property<string>("AddressLine1")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("AddressLine2")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<TimeSpan?>("ClosingTime")
-                        .HasColumnType("interval");
-
-                    b.Property<bool>("ColdStorageAvailable")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal?>("ColdStorageCapacityMt")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("ContactEmail")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<string>("ContactPhone")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("District")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
-
-                    b.Property<long?>("DistrictId")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("GradingSortingAvailable")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("numeric");
 
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("numeric");
-
-                    b.Property<long?>("MandiCategoryId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("MandiCode")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.Property<string>("MandiName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<TimeSpan?>("OpeningTime")
-                        .HasColumnType("interval");
-
-                    b.Property<long?>("StateId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("TalukaId")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal?>("TotalStorageCapacityMt")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Website")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("WeighingType")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<string>("WorkingDays")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.HasKey("MandiId");
 
                     b.HasIndex("District");
 
-                    b.HasIndex("DistrictId");
-
-                    b.HasIndex("MandiCategoryId");
-
-                    b.HasIndex("MandiName");
-
-                    b.HasIndex("StateId");
-
-                    b.HasIndex("TalukaId");
-
                     b.ToTable("Mandis", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            MandiId = 1,
+                            District = "Pune",
+                            Location = "Pune",
+                            MandiName = "Pune Marketyard Mandi"
+                        },
+                        new
+                        {
+                            MandiId = 2,
+                            District = "Navi Mumbai",
+                            Location = "Mumbai",
+                            MandiName = "Vashi Mandi"
+                        },
+                        new
+                        {
+                            MandiId = 3,
+                            District = "Nagpur",
+                            Location = "Nagpur",
+                            MandiName = "Cotton Market"
+                        });
                 });
 
             modelBuilder.Entity("agriApp.Entities.Stakeholders.Anchor", b =>
@@ -1418,37 +1357,6 @@ namespace agriApp.Migrations
                     b.Navigation("Mandi");
 
                     b.Navigation("Seller");
-                });
-
-            modelBuilder.Entity("agriApp.Entities.Market.Mandi", b =>
-                {
-                    b.HasOne("agriApp.Entities.Geography.GeoDistrict", "GeoDistrict")
-                        .WithMany()
-                        .HasForeignKey("DistrictId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("agriApp.Entities.Lookups.MandiCategory", "MandiCategory")
-                        .WithMany()
-                        .HasForeignKey("MandiCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("agriApp.Entities.Geography.GeoState", "State")
-                        .WithMany()
-                        .HasForeignKey("StateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("agriApp.Entities.Geography.GeoTaluka", "Taluka")
-                        .WithMany()
-                        .HasForeignKey("TalukaId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("GeoDistrict");
-
-                    b.Navigation("MandiCategory");
-
-                    b.Navigation("State");
-
-                    b.Navigation("Taluka");
                 });
 
             modelBuilder.Entity("agriApp.Entities.Stakeholders.Anchor", b =>

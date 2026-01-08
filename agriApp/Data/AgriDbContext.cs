@@ -5,6 +5,8 @@ using agriApp.Entities.Market;
 using agriApp.Entities.Lots;
 using agriApp.Data.Configurations;
 using agriApp.Entities.Auctions;
+using agriApp.Entities.Geography;
+using agriApp.Entities.Lookups;
 namespace agriApp.Data
 {
     public class AgriDbContext : DbContext
@@ -45,6 +47,11 @@ public DbSet<Anchor> Anchors { get; set; }
 
 public DbSet<AnchorFarmer> AnchorFarmers { get; set; }
 
+public DbSet<GeoState> GeoStates { get; set; }
+public DbSet<GeoDistrict> GeoDistricts { get; set; }
+public DbSet<GeoTaluka> GeoTalukas { get; set; }
+
+public DbSet<MandiCategory> MandiCategories { get; set; }
         // ---------------------------
         // Model configuration loader
         // ---------------------------

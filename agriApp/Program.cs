@@ -13,6 +13,7 @@ using agriApp.Services.Files;
 using agriApp.Services.Auctions;
 using agriApp.Services.Anchors;
 using agriApp.Services.BulkImport;
+using agriApp.Services.Geography;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -167,6 +168,8 @@ builder.Services.AddScoped<IBulkFarmerValidationService, BulkFarmerValidationSer
 builder.Services.AddScoped<IAnchorFarmerService, AnchorFarmerService>();
 
 builder.Services.AddScoped<IBuyerSearchService, BuyerSearchService>();
+
+builder.Services.AddScoped<IGeoService, GeoService>();
 
 // ----------------------------------------
 // 5️⃣ Build app
