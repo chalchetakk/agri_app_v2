@@ -24,10 +24,15 @@ namespace agriApp.Controllers
         // }
          // ✅ GET /mandis
         // ✅ GET /mandis?district=Pune
+        // GET /mandis?state=Maharashtra&district=Pune
+        // GET /mandis?category=APMC
         [HttpGet]
-        public async Task<IActionResult> GetMandis([FromQuery] string? district)
+        public async Task<IActionResult> GetMandis(
+            [FromQuery] string? state, 
+            [FromQuery] string? district, 
+            [FromQuery] string? category)
         {
-            var list = await _mandiService.GetMandisAsync(district);
+            var list = await _mandiService.GetMandisAsync(state,district,category);
             return Ok(list);
         }
     }
